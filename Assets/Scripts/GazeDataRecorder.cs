@@ -31,7 +31,7 @@ public class GazeDataRecorder : MonoBehaviour
         // 打开一个文件用于写入数据
         string filePath = Path.Combine(directoryPath, "GazeData.csv");
         fileWriter = new StreamWriter(filePath, true);
-        fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Gaze on Left, Gaze on Middle, Gaze on Right");
+        fileWriter.WriteLine("Timestamp(UTC UNIX),Timestamp (AEST Local), X,Y, Gaze on Left, Gaze on Middle, Gaze on Right");
 
         // 启动数据收集线程
         dataCollectionThread = new Thread(DataCollectionTask);
@@ -76,11 +76,11 @@ public class GazeDataRecorder : MonoBehaviour
             {
                 // 使用系统时间作为时间戳
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var str_timestamp = ConvertTimestampToDateTime(timestamp);
+                string str_timestamp = ConvertTimestampToDateTime(timestamp);
 
                 // 构建数据行
                 string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6}",
-                    timestamp, str_timestamp, latestGazePosition.x, latestGazePosition.y,
+                    "'" + timestamp.ToString(), "'" + str_timestamp, latestGazePosition.x, latestGazePosition.y,
                     gazeAtLeft, gazeAtMiddle, gazeAtRight);
 
                 lock (fileWriter)
@@ -100,12 +100,17 @@ public class GazeDataRecorder : MonoBehaviour
         // 创建一个从Unix纪元开始的DateTime
         DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        // 添加毫秒数来获取正确的时间
-        DateTime targetTime = epoch.AddMilliseconds(timestamp);
+        // 添加毫秒数来获取UTC时间
+        DateTime utcDateTime = epoch.AddMilliseconds(timestamp);
+
+        // 转换UTC时间为悉尼时间
+        TimeZoneInfo sydneyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time"); // 或者 "E. Australia Standard Time"，具体ID可以通过TimeZoneInfo.GetSystemTimeZones()获取
+        DateTime sydneyTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, sydneyTimeZone);
 
         // 转换为标准的日期时间格式字符串，包含毫秒
-        return targetTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        return sydneyTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
     }
+
 
     private void CheckGaze(Vector2 gazePosition)
     {
