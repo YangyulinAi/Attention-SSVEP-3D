@@ -36,7 +36,6 @@ public class Main : MonoBehaviour
 
     private bool start = false;
     private bool breakStage = false;
-    private bool userSelection = false;
     private bool hasUserPressed = true;// Will be set false in Update()
 
     private int selectedIndex = 0;

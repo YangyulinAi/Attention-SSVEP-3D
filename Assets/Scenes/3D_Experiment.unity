@@ -211,7 +211,6 @@ GameObject:
   - component: {fileID: 223824734}
   - component: {fileID: 223824733}
   - component: {fileID: 223824735}
-  - component: {fileID: 223824736}
   m_Layer: 5
   m_Name: SSVEP Right
   m_TagString: Untagged
@@ -289,19 +288,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9a5c6ff02604f540accd3fd838fb471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &223824736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 223824731}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a1e70e3815f41644817160aaa20b4dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  childImage: {fileID: 0}
 --- !u!1 &346559329
 GameObject:
   m_ObjectHideFlags: 0
@@ -845,7 +831,6 @@ GameObject:
   - component: {fileID: 1203469616}
   - component: {fileID: 1203469615}
   - component: {fileID: 1203469617}
-  - component: {fileID: 1203469618}
   m_Layer: 5
   m_Name: SSVEP Middle
   m_TagString: Untagged
@@ -923,19 +908,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9a5c6ff02604f540accd3fd838fb471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1203469618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1203469613}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a1e70e3815f41644817160aaa20b4dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  childImage: {fileID: 0}
 --- !u!1 &1298319548
 GameObject:
   m_ObjectHideFlags: 0
@@ -1224,7 +1196,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1841472168}
   m_Father: {fileID: 1598408214}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1536036230
@@ -1289,7 +1262,6 @@ GameObject:
   - component: {fileID: 1637733977}
   - component: {fileID: 1637733976}
   - component: {fileID: 1637733978}
-  - component: {fileID: 1637733979}
   m_Layer: 5
   m_Name: SSVEP Left
   m_TagString: Untagged
@@ -1367,19 +1339,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9a5c6ff02604f540accd3fd838fb471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1637733979
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637733974}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a1e70e3815f41644817160aaa20b4dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  childImage: {fileID: 0}
 --- !u!1 &1733283882
 GameObject:
   m_ObjectHideFlags: 0
@@ -1470,9 +1429,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 4123cf49a9e94bf4e853f60226e46a5f, type: 3}
   - {fileID: 21300000, guid: 8803f9c70b4f1a044b4dc06ddf9c1ddd, type: 3}
   - {fileID: 21300000, guid: 91e3f51b2db613346a2e4c0f13d4dc7d, type: 3}
-  ssvepLeftFrequency: 10
-  ssvepMiddleFrequency: 15
-  ssvepRightFrequency: 20
+  ssvepLeftFrequency: 0
+  ssvepMiddleFrequency: 0
+  ssvepRightFrequency: 0
   numberMin: 4
   numberMax: 6
   numberShowTime: 3
@@ -1494,6 +1453,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7b8d4ac28e525d4c8cc92afe1e3d592, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  leftImageTransform: {fileID: 1637733975}
+  middleImageTransform: {fileID: 1203469614}
+  rightImageTransform: {fileID: 223824732}
 --- !u!1 &1841472162
 GameObject:
   m_ObjectHideFlags: 0
@@ -1592,17 +1554,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1841472162}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 22778629}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1536036229}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 1000}
+  m_AnchoredPosition: {x: 0, y: -1.5}
   m_SizeDelta: {x: 70, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1876477517
@@ -1840,5 +1802,4 @@ SceneRoots:
   - {fileID: 687676177}
   - {fileID: 1498395508}
   - {fileID: 1375228877}
-  - {fileID: 1841472168}
   - {fileID: 1733283885}

@@ -6,14 +6,23 @@ using Tobii.XR;
 
 public class GazeDataRecorder : MonoBehaviour
 {
+    public RectTransform leftImageTransform;
+    public RectTransform middleImageTransform;
+    public RectTransform rightImageTransform;
+
     private StreamWriter fileWriter;
     private Thread dataCollectionThread;
+
+    private Camera mainCamera;
+    private Vector2 latestGazePosition;
+    private int gazeAtLeft, gazeAtMiddle, gazeAtRight;
+    private bool gazePositionUpdated = false;
     private bool keepCollecting = true;
 
     private void Start()
     {
         // 设置Unity目标帧率为120 FPS以匹配Vive Pro Eye的采样率
-        Application.targetFrameRate = 120;
+        Application.targetFrameRate = 120; 
 
         // 创建文件夹路径
         string directoryPath = Path.Combine(Application.dataPath, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
@@ -22,44 +31,67 @@ public class GazeDataRecorder : MonoBehaviour
         // 打开一个文件用于写入数据
         string filePath = Path.Combine(directoryPath, "GazeData.csv");
         fileWriter = new StreamWriter(filePath, true);
-        fileWriter.WriteLine("Timestamp UNIX,Timestamp Unity, X,Y ");
+        fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Gaze on Left, Gaze on Middle, Gaze on Right");
 
         // 启动数据收集线程
         dataCollectionThread = new Thread(DataCollectionTask);
         dataCollectionThread.Start();
+
+        mainCamera = Camera.main;
+    }
+
+    private void Update()
+    {
+        // 获取眼动追踪数据
+        //var eyeTrackingData = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local); // 或直接使用 TobiiXR.GetEyeTrackingData() 如果不需要指定跟踪空间
+        var eyeTrackingData = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.World);
+
+
+        if (eyeTrackingData.GazeRay.IsValid)
+        {
+            // 假设注视点在眼睛前10米的直线上
+            Vector3 gazePointInWorld = eyeTrackingData.GazeRay.Origin + eyeTrackingData.GazeRay.Direction * 10f; //这里的z不影响结果
+            latestGazePosition = mainCamera.WorldToScreenPoint(gazePointInWorld);
+
+            gazePositionUpdated = true;
+
+            // 计算是否注视每个图片
+            gazeAtLeft = IsGazeInsideRectTransform(latestGazePosition, leftImageTransform) ? 1 : 0;
+            gazeAtMiddle = IsGazeInsideRectTransform(latestGazePosition, middleImageTransform) ? 1 : 0;
+            gazeAtRight = IsGazeInsideRectTransform(latestGazePosition, rightImageTransform) ? 1 : 0;
+        }
+
+        // ESC键停止记录
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            StopRecording();
+        }
     }
 
     private void DataCollectionTask()
     {
         while (keepCollecting)
         {
-            // 获取眼动追踪数据
-            var eyeTrackingData = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.World);
-
-            if (eyeTrackingData.GazeRay.IsValid)
+            if (gazePositionUpdated)
             {
                 // 使用系统时间作为时间戳
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
                 var str_timestamp = ConvertTimestampToDateTime(timestamp);
 
-                // 假设我们直接记录世界坐标数据
-                string dataLine = string.Format("{0},{1},{2},{3}",
-                    timestamp,
-                    str_timestamp,
-                    eyeTrackingData.GazeRay.Origin.x,
-                    eyeTrackingData.GazeRay.Origin.y
-                    );
+                // 构建数据行
+                string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6}",
+                    timestamp, str_timestamp, latestGazePosition.x, latestGazePosition.y,
+                    gazeAtLeft, gazeAtMiddle, gazeAtRight);
 
-                // 将数据写入文件（注意：文件写入需要处理线程安全问题）
                 lock (fileWriter)
                 {
                     fileWriter.WriteLine(dataLine);
                 }
+
+                gazePositionUpdated = false;
             }
 
-            // 等待一段时间，对应于采样率
-            Thread.Sleep(1000 / 120); // 120 Hz 采样率
+            Thread.Sleep(1000 / 120); // 适应采样率
         }
     }
 
@@ -75,13 +107,26 @@ public class GazeDataRecorder : MonoBehaviour
         return targetTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
     }
 
+    private void CheckGaze(Vector2 gazePosition)
+    {
+        bool gazeAtLeft = IsGazeInsideRectTransform(gazePosition, leftImageTransform);
+        bool gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, middleImageTransform);
+        bool gazeAtRight = IsGazeInsideRectTransform(gazePosition, rightImageTransform);
+
+        // 这里仅用于调试输出
+        Debug.Log($"Gaze Position: {gazePosition}, Left: {gazeAtLeft}, Middle: {gazeAtMiddle}, Right: {gazeAtRight}");
+    }
+
+    private bool IsGazeInsideRectTransform(Vector2 gazePosition, RectTransform rectTransform)
+    {
+        return RectTransformUtility.RectangleContainsScreenPoint(rectTransform, gazePosition, Camera.main);
+    }
 
     private void StopRecording()
     {
         keepCollecting = false;
         dataCollectionThread?.Join();
 
-        // 关闭并保存文件
         if (fileWriter != null)
         {
             fileWriter.Close();
@@ -91,21 +136,11 @@ public class GazeDataRecorder : MonoBehaviour
         Debug.Log("Recording stopped and data saved.");
     }
 
-    private void Update()
-    {
-        // 检查是否按下了 ESC 键
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            StopRecording();
-        }
-    }
-
     private void OnDestroy()
     {
         keepCollecting = false;
         dataCollectionThread?.Join();
 
-        // 确保在脚本销毁时关闭文件
         if (fileWriter != null)
         {
             fileWriter.Close();
