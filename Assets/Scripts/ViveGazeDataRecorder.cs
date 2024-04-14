@@ -2,11 +2,15 @@
 using System.IO;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UIElements;
 using ViveSR.anipal;
 using ViveSR.anipal.Eye;  // SRanipal SDK
 
 public class ViveGazeDataRecorder : MonoBehaviour
 {
+    public GameObject gazePointPrefab;  // 拖入一个预制体作为注视点的视觉表示
+    public RectTransform canvasRectTransform;
+
     // 三个图片的碰撞体
     public RectTransform leftImageTransform;
     public RectTransform middleImageTransform;
@@ -64,23 +68,37 @@ public class ViveGazeDataRecorder : MonoBehaviour
             // 通过调用 SRanipal_Eye_API.GetEyeData_v2 方法获取眼动数据，传入 eyeData 作为引用参数。此方法返回 ViveSR.Error 类型的状态值，这里检查是否返回 WORK，表示数据成功获取。
             if (SRanipal_Eye_API.GetEyeData_v2(ref eyeData) == ViveSR.Error.WORK)
             {
-                // 计算注视点在世界坐标中的位置。这里使用了眼动数据中的 gaze_origin_mm（注视起点）和 gaze_direction_normalized（规范化的注视方向），通过将方向乘以一个标量（此处为10米）来估算注视点的位置。
-                Vector3 gazePointInWorld = eyeData.verbose_data.combined.eye_data.gaze_origin_mm + eyeData.verbose_data.combined.eye_data.gaze_direction_normalized * 10f; //这里的z不影响结果
-                latestGazePosition = mainCamera.WorldToScreenPoint(gazePointInWorld);
+                // 计算注视点在世界坐标中的位置。这里使用了眼动数据中的 gaze_origin_mm（注视起点）和 gaze_direction_normalized（规范化的注视方向），通过将方向乘以一个标量（此处为10米）来估算注视点的位置。                              
+                Vector3 gazeDirection = eyeData.verbose_data.combined.eye_data.gaze_direction_normalized;
+                Vector3 gazeOrigin = eyeData.verbose_data.combined.eye_data.gaze_origin_mm * 0.001f;  // Convert mm to meters
+                Vector3 ModifiedGazeDirection = new Vector3(-gazeDirection.x, gazeDirection.y, gazeDirection.z);
+
+                Vector3 latestGazePosition = gazeOrigin + ModifiedGazeDirection;
+
+                float scaleFactorX = 350f;
+                float scaleFactorY = 175f;
+
+                latestGazePosition = new Vector3(latestGazePosition.x * scaleFactorX, latestGazePosition.y * scaleFactorY, 0);
+                gazePointPrefab.transform.localPosition = latestGazePosition;
 
                 gazePositionUpdated = true;
+
                 // 记录眼睛瞳孔直径信息
                 leftPupilDiameter = eyeData.verbose_data.left.pupil_diameter_mm;
                 rightPupilDiameter = eyeData.verbose_data.right.pupil_diameter_mm;
 
-                gazeAtLeft = IsGazeInsideRectTransform(latestGazePosition, leftImageTransform) ? 1 : 0;
-                gazeAtMiddle = IsGazeInsideRectTransform(latestGazePosition, middleImageTransform) ? 1 : 0;
-                gazeAtRight = IsGazeInsideRectTransform(latestGazePosition, rightImageTransform) ? 1 : 0;
+                gazeAtLeft = IsGazeInsideRectTransform(latestGazePosition, leftImageTransform, "Left") ? 1 : 0;
+                gazeAtMiddle = IsGazeInsideRectTransform(latestGazePosition, middleImageTransform, "Middle") ? 1 : 0;
+                gazeAtRight = IsGazeInsideRectTransform(latestGazePosition, rightImageTransform, "Right") ? 1 : 0;
 
                 Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
-                // 其他眼动数据的处理...
+               
             }
         }
+
+        Vector3 test = new Vector3(1 * 350, 0 * 175, 0);
+        gazePointPrefab.transform.localPosition = test;
+        CheckGazeWithoutVR(test);
 
         // ESC键停止记录
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -133,17 +151,41 @@ public class ViveGazeDataRecorder : MonoBehaviour
         return sydneyTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
     }
 
-    private bool IsGazeInsideRectTransform(Vector2 gazeScreenPosition, RectTransform rectTransform)
+
+    private bool IsGazeInsideRectTransform(Vector3 gazeLocalPosition, RectTransform rectTransform, string name)
     {
-        // 将屏幕坐标转换为Canvas坐标，确保使用正确的Camera参数
-        return RectTransformUtility.RectangleContainsScreenPoint(rectTransform, gazeScreenPosition, mainCamera);
+
+        Vector3 imageLocalPosition = rectTransform.localPosition;
+
+        bool isInside = false;
+
+        // 检查 gazePosition 是否在 rectTransform 内
+        if (gazeLocalPosition.x >= (imageLocalPosition.x - 22.5) && gazeLocalPosition.x <= (imageLocalPosition.x + 22.5))
+        {
+            if (gazeLocalPosition.y >= (imageLocalPosition.y - 22.5) && gazeLocalPosition.y <= (imageLocalPosition.y + 22.5))
+            {
+                isInside = true;
+            }
+        }
+      
+        // 创建一个用于存储角点坐标的数组
+        Vector3[] localCorners = new Vector3[4];
+        rectTransform.GetLocalCorners(localCorners);
+
+        
+       
+        //Debug.Log(name + "RectTransform Corners in Screen Space: " +
+        //          $"BL: {imageLocalPosition.x - 22.5}, TL: {imageLocalPosition.x + 22.5}, TR: {imageLocalPosition.y - 22.5}, BR: {imageLocalPosition.y + 22.5}"
+        //          + " Gaze Position" + gazeLocalPosition + " is inside RectTransform:" + isInside);
+
+        return isInside;
     }
 
-    private void CheckGaze(Vector2 gazePosition)
+    private void CheckGazeWithoutVR(Vector3 gazePosition)
     {
-        bool gazeAtLeft = IsGazeInsideRectTransform(gazePosition, leftImageTransform);
-        bool gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, middleImageTransform);
-        bool gazeAtRight = IsGazeInsideRectTransform(gazePosition, rightImageTransform);
+        bool gazeAtLeft = IsGazeInsideRectTransform(gazePosition, leftImageTransform, "Left");
+        bool gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, middleImageTransform, "Middle");
+        bool gazeAtRight = IsGazeInsideRectTransform(gazePosition, rightImageTransform, "Right");
 
         // 这里仅用于调试输出
         Debug.Log($"Gaze Position: {gazePosition}, Left: {gazeAtLeft}, Middle: {gazeAtMiddle}, Right: {gazeAtRight}");
