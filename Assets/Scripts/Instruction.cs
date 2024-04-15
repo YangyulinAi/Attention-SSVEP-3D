@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 public class Instruction : MonoBehaviour
 {
     public Sprite[] sprites;// Array storing the 6 sprites
-    public ViveGazeDataRecorder recorder;
     public TextMeshProUGUI hintText;
 
     private float ssvepLeftFrequency = 10f;
@@ -27,26 +26,34 @@ public class Instruction : MonoBehaviour
     private ArrowController arrowController;
     private NumberController numberController;
     private SpriteController spriteController;
-    private MarkerController markerController;
     private GameObject[] blocks = new GameObject[3];
 
     private Image targetImage;
 
     private bool start = false;
+    private bool calibration = false;
     private bool breakStage = false;
     private bool hasUserPressed = true;// Will be set false in Update()
 
     private int selectedIndex = 0;
     private int currentRunTimes = 0;
-
-    private string sceneName; // 获取当前场景的名称
-
     private int stage = 0;
+
+    /// <summary>
+    ///  For ViveGazeDataRecorder
+    /// </summary>
+    private ViveGazeDataRecorder recorder;
+    public GameObject gazePointPrefab; // 拖入一个预制体作为注视点的视觉表示
+    public RectTransform canvasRectTransform;
+
+    public RectTransform leftImageTransform; // 三个图片的碰撞体
+    public RectTransform middleImageTransform;
+    public RectTransform rightImageTransform;
+
+    public Image fillImage;
 
     void Start()
     {
-        sceneName = SceneManager.GetActiveScene().name;
-
         // 查找场景中名为"CenterNumberText"的对象并获取其TextMeshProUGUI组件
         centerNumberText = GameObject.Find("centerNumberText")?.GetComponent<TextMeshProUGUI>();
         leftNumberText = GameObject.Find("leftNumberText")?.GetComponent<TextMeshProUGUI>();
@@ -78,132 +85,148 @@ public class Instruction : MonoBehaviour
         SetSSVEPController("SSVEP Right", ssvepRightFrequency, "rightNumberText", 2);
 
         arrowController = new ArrowController(blocks);
-
+        recorder = new ViveGazeDataRecorder(gazePointPrefab, canvasRectTransform, leftImageTransform, middleImageTransform, rightImageTransform, fillImage);
         UpdateDirection("Start");
 
     }
 
     private void Update()
     {
+
         if (!start)
         {
-            hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the center of the screen";
-            if (recorder.CheckGaze("middle"))
+            if (!calibration)
             {
-                hintText.text = "Well done!";
-                numberController.HideAllNumbers();
-                StartCoroutine(ChangeStage());
-                start = true;
-            }
-            
-        }
+                hintText.text = "Eye Gaze calibration\n Please gazing the moving cube";
+                if (recorder.EyeCalibration())
+                {
+                    calibration = true;
+                }
 
-        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)) && !hasUserPressed)
-        {
-            string key = Input.inputString;
-            if (!string.IsNullOrEmpty(key))
-            {
-                Debug.Log("<color=#00FF00>User Res</color>");
-            }
-            hasUserPressed = true;
-        }
-
-        if(currentRunTimes >= maxRunTimes)
-        {
-            currentRunTimes = 0;
-            selectedIndex++;
-        }
-
-        if(selectedIndex >= selectedSprites.Length)
-        {
-            SceneManager.LoadScene("Experiment");
-        }
-
-        if(Time.timeScale == 0)
-        {
-            Debug.Log(stage);
-            if (stage == 0)
-            {
-                if (recorder.CheckGaze("right"))
-                {
-                    stage++;
-                    hintText.text = "Good job!";
-                    Time.timeScale = 1; 
-                }
-                else
-                {
-                    hintText.text = "When you see only a right arrow, please move your eye gaze to the right cube";
-                }
-            }
-            else if (stage == 1)
-            {
-                if (recorder.CheckGaze("left"))
-                {
-                    hintText.text = "Smart!";
-                    Time.timeScale = 1;
-                    stage++;
-                }
-                else
-                {
-                    hintText.text = "When you see only a left arrow, please move your eye gaze to the left cube";
-                }
-            }
-            else if (stage == 2)
-            {
-                if (recorder.CheckGaze("middle"))
-                {
-                    hintText.text = "Excellent!";
-                    Time.timeScale = 1;
-                    stage++;
-                }
-                else
-                {
-                    hintText.text = "When you see only a up arrow, please move your eye gaze to the middle cube";
-                }
-            }
-            else if (stage == 3)
-            {
-                if (recorder.CheckGaze("middle"))
-                {
-                    hintText.text = "Please do not move your eye, and covertly monitoring the number and press it!";
-                    if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
-                    {
-                        hintText.text = "Brilliant!";
-                        Time.timeScale = 1;
-                        stage++;
-                    }
-                }
-                else
-                {
-                    hintText.text = "When you see up arrow with a right arrow, please keep your eye gaze to the middle cube";
-                }
-            }
-            else if (stage == 4)
-            {
-                if (recorder.CheckGaze("middle"))
-                {
-                    hintText.text = "Still do not move your eye, and covertly monitoring the number and press it!";
-                    if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
-                    {
-                        hintText.text = "Incredible! Now, please try by yourself";
-                        Time.timeScale = 1;
-                        stage++;
-                    }
-                }
-                else
-                {
-                    hintText.text = "When you see up arrow with a left arrow, please keep your eye gaze to the middle cube";
-                }
             }
             else
             {
-                hintText.text = " ";
-                Time.timeScale = 1;
+                recorder.EyeTracking();
+                hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the center of the screen";
+                if (recorder.CheckGaze("middle"))
+                {
+                    hintText.text = "Well done!";
+                    numberController.HideAllNumbers();
+                    StartCoroutine(ChangeStage());
+                    start = true;
+                }
+            }
+            
+            
+        }
+        else
+        {
+            recorder.EyeTracking();
+
+            if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)) && !hasUserPressed)
+            {
+                string key = Input.inputString;
+                if (!string.IsNullOrEmpty(key))
+                {
+                    Debug.Log("<color=#00FF00>User Res</color>");
+                }
+                hasUserPressed = true;
             }
 
+            if (currentRunTimes >= maxRunTimes)
+            {
+                currentRunTimes = 0;
+                selectedIndex++;
+            }
 
+            if (selectedIndex >= selectedSprites.Length)
+            {
+                SceneManager.LoadScene("Experiment");
+            }
 
-        }
+            if (Time.timeScale == 0)
+            {
+                if (stage == 0)
+                {
+                    if (recorder.CheckGaze("right"))
+                    {
+                        stage++;
+                        hintText.text = "Good job!";
+                        Time.timeScale = 1;
+                    }
+                    else
+                    {
+                        hintText.text = "When you see only a right arrow, please move your eye gaze to the right cube";
+                    }
+                }
+                else if (stage == 1)
+                {
+                    if (recorder.CheckGaze("left"))
+                    {
+                        hintText.text = "Smart!";
+                        Time.timeScale = 1;
+                        stage++;
+                    }
+                    else
+                    {
+                        hintText.text = "When you see only a left arrow, please move your eye gaze to the left cube";
+                    }
+                }
+                else if (stage == 2)
+                {
+                    if (recorder.CheckGaze("middle"))
+                    {
+                        hintText.text = "Excellent!";
+                        Time.timeScale = 1;
+                        stage++;
+                    }
+                    else
+                    {
+                        hintText.text = "When you see only a up arrow, please move your eye gaze to the middle cube";
+                    }
+                }
+                else if (stage == 3)
+                {
+                    if (recorder.CheckGaze("middle"))
+                    {
+                        hintText.text = "Please do not move your eye, and covertly monitoring the number and press it!";
+                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        {
+                            hintText.text = "Brilliant!";
+                            Time.timeScale = 1;
+                            stage++;
+                        }
+                    }
+                    else
+                    {
+                        hintText.text = "When you see up arrow with a right arrow, please keep your eye gaze to the middle cube";
+                    }
+                }
+                else if (stage == 4)
+                {
+                    if (recorder.CheckGaze("middle"))
+                    {
+                        hintText.text = "Still do not move your eye, and covertly monitoring the number and press it!";
+                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        {
+                            hintText.text = "Incredible! Now, please try by yourself";
+                            Time.timeScale = 1;
+                            stage++;
+                        }
+                    }
+                    else
+                    {
+                        hintText.text = "When you see up arrow with a left arrow, please keep your eye gaze to the middle cube";
+                    }
+                }
+                else
+                {
+                    hintText.text = " ";
+                    Time.timeScale = 1;
+                }
+
+            }
+        } 
     }
 
     private IEnumerator ChangeStage()
@@ -315,4 +338,9 @@ public class Instruction : MonoBehaviour
         }
     }
 
+
+    private void OnDestroy()
+    {
+        recorder.StopRecording();
+    }
 }

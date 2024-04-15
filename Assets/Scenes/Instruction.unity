@@ -1418,7 +1418,6 @@ GameObject:
   - component: {fileID: 1733283885}
   - component: {fileID: 1733283884}
   - component: {fileID: 1733283883}
-  - component: {fileID: 1733283887}
   - component: {fileID: 1733283888}
   m_Layer: 0
   m_Name: EventSystem
@@ -1477,25 +1476,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1733283887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1733283882}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47a9d47f383f68d41bf6608e4fc2ba08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gazePointPrefab: {fileID: 2087216450}
-  canvasRectTransform: {fileID: 1841472168}
-  leftImageTransform: {fileID: 1637733975}
-  middleImageTransform: {fileID: 1203469614}
-  rightImageTransform: {fileID: 223824732}
-  fillImage: {fileID: 1271755354}
-  gazeTime: 5
 --- !u!114 &1733283888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1516,10 +1496,15 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 4123cf49a9e94bf4e853f60226e46a5f, type: 3}
   - {fileID: 21300000, guid: 8803f9c70b4f1a044b4dc06ddf9c1ddd, type: 3}
   - {fileID: 21300000, guid: 91e3f51b2db613346a2e4c0f13d4dc7d, type: 3}
-  recorder: {fileID: 1733283887}
   hintText: {fileID: 3447257}
   numberMin: 4
   numberMax: 6
+  gazePointPrefab: {fileID: 2087216450}
+  canvasRectTransform: {fileID: 1841472168}
+  leftImageTransform: {fileID: 1637733975}
+  middleImageTransform: {fileID: 1203469614}
+  rightImageTransform: {fileID: 223824732}
+  fillImage: {fileID: 1271755354}
 --- !u!1 &1841472162
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,49 +3,74 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;  // For TextMeshProUGUI
 using UnityEngine.SceneManagement;
+using UnityEngine.Profiling;
 
 public class Main : MonoBehaviour
 {
-    public Sprite[] sprites;// Array storing the 6 sprites
-
+    /// <summary>
+    ///  For SSVEP Controller
+    /// </summary>
     public float ssvepLeftFrequency = 10f;
     public float ssvepMiddleFrequency = 15f;
     public float ssvepRightFrequency = 20f;
+    private Image targetImage; // Virtual Controller Background
 
+    /// <summary>
+    ///  For Merker Controller
+    /// </summary>
+    private MarkerController markerController;
+    public string IP = "192.168.1.11";
+    public int port = 9999;
+
+    /// <summary>
+    ///  For Sprite Controller
+    /// </summary>
+    private SpriteController spriteController;
+    public Sprite[] sprites;// Array storing the 6 sprites
+    public int stageInterval = 8;
+    public int[] selectedSprites = new int[5]{ 3,4,5,0,2};
+    public int maxRunTimes = 5;
+    private int selectedIndex = 0;
+    private int currentRunTimes = 0;
+
+    /// <summary>
+    ///  For Number Controller
+    /// </summary>
+    private NumberController numberController;
+    private TextMeshProUGUI centerNumberText, leftNumberText, rightNumberText;
     public int numberMin = 4;
     public int numberMax = 6;
     public float numberShowTime = 3f;
     public float numberHideTimeMax = 3f;
 
-    public string IP = "192.168.1.11";
-    public int port = 9999;
-
-    public int stageInterval = 8;
-    public int[] selectedSprites = new int[5]{ 3,4,5,0,2};
-    public int maxRunTimes = 5;
-
-    private TextMeshProUGUI centerNumberText, leftNumberText, rightNumberText;
+    /// <summary>
+    ///  For Arrow Controller
+    /// </summary>
     private ArrowController arrowController;
-    private NumberController numberController;
-    private SpriteController spriteController;
-    private MarkerController markerController;
     private GameObject[] blocks = new GameObject[3];
 
-    private Image targetImage;
+    /// <summary>
+    ///  For Vive Gaze-Data Recorder
+    /// </summary>
+    private ViveGazeDataRecorder recorder;
+    public GameObject gazePointPrefab;  // 拖入一个预制体作为注视点的视觉表示
+    public RectTransform canvasRectTransform;
 
+    public RectTransform leftImageTransform;  // 三个图片的碰撞体
+    public RectTransform middleImageTransform;
+    public RectTransform rightImageTransform;
+
+    public Image fillImage;
+
+    /// <summary>
+    ///  Local Variables
+    /// </summary>
     private bool start = false;
     private bool breakStage = false;
     private bool hasUserPressed = true;// Will be set false in Update()
 
-    private int selectedIndex = 0;
-    private int currentRunTimes = 0;
-
-    private string sceneName; // 获取当前场景的名称
-
     void Start()
     {
-        sceneName = SceneManager.GetActiveScene().name;
-
         // 查找场景中名为"CenterNumberText"的对象并获取其TextMeshProUGUI组件
         centerNumberText = GameObject.Find("centerNumberText")?.GetComponent<TextMeshProUGUI>();
         leftNumberText = GameObject.Find("leftNumberText")?.GetComponent<TextMeshProUGUI>();
@@ -78,6 +103,7 @@ public class Main : MonoBehaviour
         SetSSVEPController("SSVEP Right", ssvepRightFrequency, "rightNumberText", 2);
 
         arrowController = new ArrowController(blocks);
+        recorder = new ViveGazeDataRecorder(gazePointPrefab, canvasRectTransform, leftImageTransform, middleImageTransform, rightImageTransform, fillImage);
 
         UpdateDirection("Start");
 
@@ -85,6 +111,8 @@ public class Main : MonoBehaviour
 
     private void Update()
     {
+        recorder.EyeTracking();
+
         //开始前时候按下空格，开始一个block
         if (Input.GetKeyDown(KeyCode.Space) && !start)
         {
@@ -244,8 +272,6 @@ public class Main : MonoBehaviour
         }
     }
 
-    
-
     private void ChangeSpriteInImage(Sprite sprite)
     {
         if (targetImage != null)
@@ -254,4 +280,8 @@ public class Main : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        recorder.StopRecording();
+    }
 }

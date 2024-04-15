@@ -6,35 +6,66 @@ using UnityEngine;
 //using UnityEngine.UIElements;
 using ViveSR.anipal;
 using ViveSR.anipal.Eye;  // SRanipal SDK
+using System.Collections.Generic;
 
 public class ViveGazeDataRecorder : MonoBehaviour
 {
-    public GameObject gazePointPrefab;  // 拖入一个预制体作为注视点的视觉表示
-    public RectTransform canvasRectTransform;
-
-    // 三个图片的碰撞体
-    public RectTransform leftImageTransform;
-    public RectTransform middleImageTransform;
-    public RectTransform rightImageTransform;
-
+    // 文件读写和线程管理 相关参数：
     private StreamWriter fileWriter;
     private Thread dataCollectionThread; // 一个后台线程，用于定期收集和写入眼动追踪数据
-
     private Camera mainCamera; // 一个引用主摄像机的 Camera 对象，用于屏幕坐标计算
     private bool keepCollecting = true; // 一个布尔值，控制数据收集线程的运行
 
+    // Eye gaze recorder 相关参数：
     private Vector3 gazePosition;
     private int gazeAtLeft, gazeAtMiddle, gazeAtRight;
     private bool gazePositionUpdated = false;
     float leftPupilDiameter;
     float rightPupilDiameter;
 
+    // Eye indicator UI 相关参数：
+    private GameObject gazePointPrefab;  // 拖入一个预制体作为注视点的视觉表示
+    private RectTransform canvasRectTransform;
     public Image fillImage;  // 拖拽你的进度条Image组件到这里
-    public float gazeTime = 5f;  // 需要注视的时间，5秒
+    private float gazeTime = 5f;  // 需要注视的时间，5秒
     private float timer = 0f;
 
-    private void Start()
+    // 三个刺激源的碰撞体：
+    public RectTransform leftImageTransform;
+    public RectTransform middleImageTransform;
+    public RectTransform rightImageTransform;
+
+    // Eye Gaze 自动校准算法相关参数：
+    private List<Vector2> scaleFactorList = new List<Vector2>();  // 用于存储稳定的缩放因子
+
+    private Vector3[] positions = new Vector3[]
     {
+        new Vector3(-200, 0, 0),
+        new Vector3(-200, 100, 0),
+        new Vector3(0, 100, 0),
+        new Vector3(200, 100, 0),
+        new Vector3(200, 0, 0),
+        new Vector3(200, -100, 0),
+        new Vector3(0, -100, 0),
+        new Vector3(-200, -100, 0),
+    };
+    private int currentTarget = 0;
+    private Vector2 lastScaleFactor = new Vector2(0, 0);
+    private float threshold = 15;
+    private int errorCount = 0;
+    private bool hasCalibrated = false;
+    private static Vector2 averageScaleFactor = new Vector2(0, 0);
+
+    public ViveGazeDataRecorder(GameObject gazePointPrefab, RectTransform canvasRectTransform, RectTransform leftImageTransform, RectTransform middleImageTransform, RectTransform rightImageTransform, Image fillImage)
+    {
+        this.gazePointPrefab = gazePointPrefab;
+        this.canvasRectTransform = canvasRectTransform;
+        this.leftImageTransform = leftImageTransform;
+        this.middleImageTransform = middleImageTransform;
+        this.rightImageTransform = rightImageTransform;
+        this.fillImage = fillImage;
+
+
         // 设置应用程序的目标帧率为 120 FPS
         Application.targetFrameRate = 120; 
 
@@ -62,7 +93,129 @@ public class ViveGazeDataRecorder : MonoBehaviour
         }
     }
 
-    private void Update()
+
+    public bool EyeCalibration()
+    {
+        // 校准游标初始化
+        float speed = 50f;  // 控制移动速度
+
+        if (Vector3.Distance(gazePointPrefab.transform.localPosition, positions[currentTarget]) < 0.1f)
+        {
+            currentTarget = (currentTarget + 1) % positions.Length;
+
+        }
+        gazePointPrefab.transform.localPosition = Vector3.MoveTowards(gazePointPrefab.transform.localPosition, positions[currentTarget], speed * Time.deltaTime);
+
+        EyeData_v2 eyeData = new EyeData_v2();//  EyeData_v2 类型的变量，用来存储获取的眼动数据。EyeData_v2 是存储详细眼动追踪信息的结构体，包括瞳孔直径、注视点坐标等。
+        Vector2 eyeGaze = new Vector2(0, 0);
+
+        // 获取眼动数据
+        if (SRanipal_Eye_Framework.Status == SRanipal_Eye_Framework.FrameworkStatus.WORKING)
+        {
+            if (SRanipal_Eye_API.GetEyeData_v2(ref eyeData) == ViveSR.Error.WORK)
+            {
+                // VR 场景真实数据
+                Vector3 gazeDirection = eyeData.verbose_data.combined.eye_data.gaze_direction_normalized;
+                Vector3 gazeOrigin = eyeData.verbose_data.combined.eye_data.gaze_origin_mm * 0.001f;  // Convert mm to meters
+                Vector3 ModifiedGazeDirection = new Vector3(-gazeDirection.x, gazeDirection.y, gazeDirection.z);
+
+                gazePosition = gazeOrigin + ModifiedGazeDirection;
+
+                eyeGaze.x = gazePosition.x;
+                eyeGaze.y = gazePosition.y;
+            }
+        }
+        
+        else
+        {
+            // 鼠标模拟数据
+            if (Input.GetMouseButton(0))  // 当鼠标左键被点击
+            {
+                // 获取鼠标位置
+                Vector3 mouseScreenPosition = Input.mousePosition;
+                mouseScreenPosition.z = 700;  // 设置 Z 坐标为 700
+
+                Vector2 offset;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(middleImageTransform, mouseScreenPosition, Camera.main, out offset);
+                float scaleFactorX = 350f;
+                float scaleFactorY = 175f;
+
+                offset = new Vector2(offset.x / scaleFactorX, offset.y / scaleFactorY);
+                //Debug.Log("Local Offset in Canvas: " + offset);
+
+                eyeGaze.x = offset.x;
+                eyeGaze.y = offset.y;
+
+            }
+            else
+            {
+                eyeGaze.x = 0;
+                eyeGaze.y = 0;
+            }
+        }
+
+        // 自适应算法
+        if (eyeGaze.x != 0 && eyeGaze.y != 0 && !hasCalibrated) // 排除除零错误
+        {
+            Vector2 currentScaleFactor = new Vector2(gazePointPrefab.transform.localPosition.x / eyeGaze.x, gazePointPrefab.transform.localPosition.y / eyeGaze.y);
+            Debug.Log("currentScaleFactor: " + currentScaleFactor);
+            if (scaleFactorList.Count != 0)
+            {
+                if (Vector2.Distance(lastScaleFactor, currentScaleFactor) < threshold)  // 0.05为缩放因子变化的阈值
+                {
+                    timer += Time.deltaTime;
+                    fillImage.fillAmount = timer / gazeTime;  // 更新进度条
+                    scaleFactorList.Add(currentScaleFactor);  // 添加稳定的缩放因子到列表中
+
+                }
+                else if(errorCount <= 3)
+                {
+                    errorCount++;
+                }
+                else
+                {
+                    timer = 0;
+                    errorCount = 0;
+                    fillImage.fillAmount = 0;
+                    scaleFactorList.Clear();  // 清空列表，因为出现了不稳定的情况
+                }
+            }
+            else
+            {
+                scaleFactorList.Add(currentScaleFactor);
+            }
+            lastScaleFactor = currentScaleFactor;
+
+        }
+
+        // 校准成功
+        if (timer >= gazeTime)
+        {
+            averageScaleFactor = CalculateAverageScaleFactor();
+            fillImage.fillAmount = 1;
+            hasCalibrated = true;
+            Debug.Log("Calibration completed successfully. Average Scale Factor: " + averageScaleFactor);
+            // 执行校准成功后的操作
+
+            return true;
+        }
+
+        return false;
+        
+        
+    }
+
+    Vector2 CalculateAverageScaleFactor()
+    {
+        Vector2 sum = Vector2.zero;
+        foreach (Vector2 scaleFactor in scaleFactorList)
+        {
+            sum += scaleFactor;
+        }
+        return sum / scaleFactorList.Count;  // 计算平均值
+    }
+
+    public void EyeTracking()
     {
         // 首先检查 SRanipal 眼动追踪框架的状态是否为 WORKING。
         // 这确保了只有当眼动追踪硬件正常工作并且SDK正常初始化后，才会执行获取数据的操作
@@ -80,8 +233,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
                 gazePosition = gazeOrigin + ModifiedGazeDirection;
 
-                float scaleFactorX = 350f;
-                float scaleFactorY = 175f;
+                float scaleFactorX = averageScaleFactor.x;//350f;
+                float scaleFactorY = averageScaleFactor.y;//175f;
 
                 gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 0);
                 gazePointPrefab.transform.localPosition = gazePosition;
@@ -108,13 +261,21 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 Vector3 mouseScreenPosition = Input.mousePosition;
                 mouseScreenPosition.z = 500;  // 设置 Z 坐标为 500
 
+                float scaleFactorX = 350f;
+                float scaleFactorY = 175f;
+
                 Vector2 offset;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(middleImageTransform, mouseScreenPosition, Camera.main, out offset);
+                offset = new Vector2(offset.x / scaleFactorX, offset.y / scaleFactorY);
+
+                scaleFactorX = averageScaleFactor.x;//350f;
+                scaleFactorY = averageScaleFactor.y;//175f;
+
+                offset = new Vector2(offset.x * scaleFactorX, offset.y * scaleFactorY);
                 Debug.Log("Local Offset in Canvas: " + offset);
 
                 gazePosition = new Vector3(offset.x, offset.y, 0);
-                gazePointPrefab.transform.localPosition = gazePosition;
-                
+                gazePointPrefab.transform.localPosition = gazePosition;      
 
             }
             else
@@ -242,7 +403,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
        
     } 
 
-    private void StopRecording()
+    public void StopRecording()
     {
         // 在对象销毁时，停止数据收集线程并等待其结束
         keepCollecting = false;
@@ -261,11 +422,6 @@ public class ViveGazeDataRecorder : MonoBehaviour
         }
         else
             Debug.Log("Recording stopped and data saved.");
-    }
-
-    private void OnDestroy()
-    {
-        StopRecording();
     }
 
 }
