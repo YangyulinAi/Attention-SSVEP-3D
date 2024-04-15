@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 public class Main : MonoBehaviour
 {
     public Sprite[] sprites;// Array storing the 6 sprites
-    
 
     public float ssvepLeftFrequency = 10f;
     public float ssvepMiddleFrequency = 15f;
@@ -41,8 +40,12 @@ public class Main : MonoBehaviour
     private int selectedIndex = 0;
     private int currentRunTimes = 0;
 
+    private string sceneName; // 获取当前场景的名称
+
     void Start()
     {
+        sceneName = SceneManager.GetActiveScene().name;
+
         // 查找场景中名为"CenterNumberText"的对象并获取其TextMeshProUGUI组件
         centerNumberText = GameObject.Find("centerNumberText")?.GetComponent<TextMeshProUGUI>();
         leftNumberText = GameObject.Find("leftNumberText")?.GetComponent<TextMeshProUGUI>();
@@ -64,7 +67,7 @@ public class Main : MonoBehaviour
             Debug.LogError("<color=red>Image object not found in the scene.</color>");
         }
 
-        arrowController = new ArrowController(this);
+
         numberController = new NumberController(centerNumberText, leftNumberText, rightNumberText);
         spriteController = new SpriteController(sprites, ChangeSpriteInImage);
         markerController = new MarkerController(IP, port);
@@ -74,7 +77,10 @@ public class Main : MonoBehaviour
         SetSSVEPController("SSVEP Middle", ssvepMiddleFrequency, "centerNumberText", 1);
         SetSSVEPController("SSVEP Right", ssvepRightFrequency, "rightNumberText", 2);
 
+        arrowController = new ArrowController(blocks);
+
         UpdateDirection("Start");
+
     }
 
     private void Update()
@@ -238,31 +244,7 @@ public class Main : MonoBehaviour
         }
     }
 
-    public void SetBlinking(string blockName, bool status)
-    {
-        
-        int index = FindBlock(blockName);
-
-        if (index > -1 && index < 3)
-        {
-            GameObject block = blocks[index];
-            if (block != null)
-            {
-                block.gameObject.SetActive(status);
-            }
-        }
-        else
-            Debug.LogError($"<color=red>Block named {blockName} not found</color>");
-    }
-
-    private int FindBlock(string blockName)
-    {
-        for(int i = 0; i < blocks.Length; i++)
-        {
-            if (blocks[i].name == blockName) return i;
-        }
-        return -1;
-    }
+    
 
     private void ChangeSpriteInImage(Sprite sprite)
     {

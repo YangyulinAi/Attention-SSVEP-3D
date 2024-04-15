@@ -15,14 +15,10 @@ using UnityEngine.UI;
 
 public class ArrowController
 {
-    // Purpose: Blink certain blocks based on the current arrow direction
-
-    private Main mainController;
-
-    // 构造函数，通过它将Main类的实例传递给ArrowController
-    public ArrowController(Main main)
+    private GameObject[] blocks;
+    public ArrowController(GameObject[] blocks)
     {
-        mainController = main; // 将Main实例保存在私有变量mainController中
+        this.blocks = blocks;
     }
 
     public void UpdateDirection(string currentArrow)
@@ -32,28 +28,54 @@ public class ArrowController
         {
             case "Up":
             case "Down":
-                mainController.SetBlinking("SSVEP Middle", true);
-                mainController.SetBlinking("SSVEP Left", false);
-                mainController.SetBlinking("SSVEP Right", false);
+                SetBlinking("SSVEP Middle", true);
+                SetBlinking("SSVEP Left", false);
+                SetBlinking("SSVEP Right", false);
                 break;
             case "Left":
             case "Up Left":
-                mainController.SetBlinking("SSVEP Middle", true);
-                mainController.SetBlinking("SSVEP Left", true);
-                mainController.SetBlinking("SSVEP Right", false);
+                SetBlinking("SSVEP Middle", true);
+                SetBlinking("SSVEP Left", true);
+                SetBlinking("SSVEP Right", false);
                 break;
             case "Right":
             case "Up Right":
-                mainController.SetBlinking("SSVEP Middle", true);
-                mainController.SetBlinking("SSVEP Left", false);
-                mainController.SetBlinking("SSVEP Right", true);
+                SetBlinking("SSVEP Middle", true);
+                SetBlinking("SSVEP Left", false);
+                SetBlinking("SSVEP Right", true);
                 break;
             default:
                 // 默认情况下关闭所有闪烁
-                mainController.SetBlinking("SSVEP Middle", false);
-                mainController.SetBlinking("SSVEP Left", false);
-                mainController.SetBlinking("SSVEP Right", false);
+                SetBlinking("SSVEP Middle", false);
+                SetBlinking("SSVEP Left", false);
+                SetBlinking("SSVEP Right", false);
                 break;
         }
+    }
+
+    public void SetBlinking(string blockName, bool status)
+    {
+
+        int index = FindBlock(blockName);
+
+        if (index > -1 && index < 3)
+        {
+            GameObject block = blocks[index];
+            if (block != null)
+            {
+                block.gameObject.SetActive(status);
+            }
+        }
+        else
+            Debug.LogError($"<color=red>Block named {blockName} not found</color>");
+    }
+
+    private int FindBlock(string blockName)
+    {
+        for (int i = 0; i < blocks.Length; i++)
+        {
+            if (blocks[i].name == blockName) return i;
+        }
+        return -1;
     }
 }

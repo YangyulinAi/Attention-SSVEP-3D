@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using UnityEngine.UI;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.UIElements;
+//using UnityEngine.UIElements;
 using ViveSR.anipal;
 using ViveSR.anipal.Eye;  // SRanipal SDK
 
@@ -22,11 +23,15 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private Camera mainCamera; // 一个引用主摄像机的 Camera 对象，用于屏幕坐标计算
     private bool keepCollecting = true; // 一个布尔值，控制数据收集线程的运行
 
-    private Vector2 latestGazePosition;
+    private Vector3 gazePosition;
     private int gazeAtLeft, gazeAtMiddle, gazeAtRight;
     private bool gazePositionUpdated = false;
     float leftPupilDiameter;
     float rightPupilDiameter;
+
+    public Image fillImage;  // 拖拽你的进度条Image组件到这里
+    public float gazeTime = 5f;  // 需要注视的时间，5秒
+    private float timer = 0f;
 
     private void Start()
     {
@@ -73,13 +78,13 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 Vector3 gazeOrigin = eyeData.verbose_data.combined.eye_data.gaze_origin_mm * 0.001f;  // Convert mm to meters
                 Vector3 ModifiedGazeDirection = new Vector3(-gazeDirection.x, gazeDirection.y, gazeDirection.z);
 
-                Vector3 latestGazePosition = gazeOrigin + ModifiedGazeDirection;
+                gazePosition = gazeOrigin + ModifiedGazeDirection;
 
                 float scaleFactorX = 350f;
                 float scaleFactorY = 175f;
 
-                latestGazePosition = new Vector3(latestGazePosition.x * scaleFactorX, latestGazePosition.y * scaleFactorY, 0);
-                gazePointPrefab.transform.localPosition = latestGazePosition;
+                gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 0);
+                gazePointPrefab.transform.localPosition = gazePosition;
 
                 gazePositionUpdated = true;
 
@@ -87,18 +92,37 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 leftPupilDiameter = eyeData.verbose_data.left.pupil_diameter_mm;
                 rightPupilDiameter = eyeData.verbose_data.right.pupil_diameter_mm;
 
-                gazeAtLeft = IsGazeInsideRectTransform(latestGazePosition, leftImageTransform, "Left") ? 1 : 0;
-                gazeAtMiddle = IsGazeInsideRectTransform(latestGazePosition, middleImageTransform, "Middle") ? 1 : 0;
-                gazeAtRight = IsGazeInsideRectTransform(latestGazePosition, rightImageTransform, "Right") ? 1 : 0;
+                gazeAtLeft = IsGazeInsideRectTransform(gazePosition, leftImageTransform, "Left") ? 1 : 0;
+                gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, middleImageTransform, "Middle") ? 1 : 0;
+                gazeAtRight = IsGazeInsideRectTransform(gazePosition, rightImageTransform, "Right") ? 1 : 0;
 
                 Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
                
             }
         }
+        else
+        {
+            if (Input.GetMouseButton(0))  // 当鼠标左键被点击
+            {
+                // 获取鼠标位置
+                Vector3 mouseScreenPosition = Input.mousePosition;
+                mouseScreenPosition.z = 500;  // 设置 Z 坐标为 500
 
-        Vector3 test = new Vector3(1 * 350, 0 * 175, 0);
-        gazePointPrefab.transform.localPosition = test;
-        CheckGazeWithoutVR(test);
+                Vector2 offset;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(middleImageTransform, mouseScreenPosition, Camera.main, out offset);
+                Debug.Log("Local Offset in Canvas: " + offset);
+
+                gazePosition = new Vector3(offset.x, offset.y, 0);
+                gazePointPrefab.transform.localPosition = gazePosition;
+                
+
+            }
+            else
+            {
+                gazePosition = new Vector3(0,200,0);
+                gazePointPrefab.transform.localPosition = gazePosition;
+            }
+        }
 
         // ESC键停止记录
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -120,7 +144,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
                 // 构建数据行
                 string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}",
-                    "'" + timestamp.ToString(), "'" + str_timestamp, latestGazePosition.x, latestGazePosition.y,
+                    "'" + timestamp.ToString(), "'" + str_timestamp, gazePosition.x, gazePosition.y,
                     leftPupilDiameter, rightPupilDiameter, gazeAtLeft, gazeAtMiddle, gazeAtRight);
 
                 lock (fileWriter)
@@ -172,24 +196,52 @@ public class ViveGazeDataRecorder : MonoBehaviour
         Vector3[] localCorners = new Vector3[4];
         rectTransform.GetLocalCorners(localCorners);
 
-        
-       
-        //Debug.Log(name + "RectTransform Corners in Screen Space: " +
-        //          $"BL: {imageLocalPosition.x - 22.5}, TL: {imageLocalPosition.x + 22.5}, TR: {imageLocalPosition.y - 22.5}, BR: {imageLocalPosition.y + 22.5}"
-        //          + " Gaze Position" + gazeLocalPosition + " is inside RectTransform:" + isInside);
-
         return isInside;
     }
 
-    private void CheckGazeWithoutVR(Vector3 gazePosition)
+    public bool CheckGaze(string name)
     {
-        bool gazeAtLeft = IsGazeInsideRectTransform(gazePosition, leftImageTransform, "Left");
-        bool gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, middleImageTransform, "Middle");
-        bool gazeAtRight = IsGazeInsideRectTransform(gazePosition, rightImageTransform, "Right");
+        RectTransform rectTransform = middleImageTransform;
+        if (name == "left")
+        {
+            rectTransform = leftImageTransform;
+        }
+        else if(name == "right") 
+        {
+            rectTransform = rightImageTransform;
+        }
 
-        // 这里仅用于调试输出
-        Debug.Log($"Gaze Position: {gazePosition}, Left: {gazeAtLeft}, Middle: {gazeAtMiddle}, Right: {gazeAtRight}");
+
+        bool isGazing = IsGazeInsideRectTransform(gazePosition, rectTransform, name);
+
+        if (isGazing)
+        {
+            // 更新计时器
+            timer += Time.unscaledDeltaTime;
+            fillImage.fillAmount = timer / gazeTime;  // 更新进度条
+            Debug.Log(name + " " + timer);
+            if (timer >= gazeTime)
+            {
+                Debug.Log("Completed!");
+                fillImage.fillAmount = 1;
+                return true;
+            }
+
+            // 这里仅用于调试输出
+            // Debug.Log($"Gaze Position: {gazeLocalPosition}, is gazing: {isGazing}");
+        }
+        else
+        {
+            // 重置计时器和进度条
+            timer = 0;
+            fillImage.fillAmount = 0;
+            return false;
+        }
+
+        return false;
+       
     } 
+
     private void StopRecording()
     {
         // 在对象销毁时，停止数据收集线程并等待其结束
