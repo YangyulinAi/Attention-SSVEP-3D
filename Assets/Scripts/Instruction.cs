@@ -44,7 +44,7 @@ public class Instruction : MonoBehaviour
     /// </summary>
     private ViveGazeDataRecorder recorder;
     public GameObject gazePointPrefab; // 拖入一个预制体作为注视点的视觉表示
-    public RectTransform canvasRectTransform;
+    public Canvas canvas;
 
     public RectTransform leftImageTransform; // 三个图片的碰撞体
     public RectTransform middleImageTransform;
@@ -85,7 +85,10 @@ public class Instruction : MonoBehaviour
         SetSSVEPController("SSVEP Right", ssvepRightFrequency, "rightNumberText", 2);
 
         arrowController = new ArrowController(blocks);
-        recorder = new ViveGazeDataRecorder(gazePointPrefab, canvasRectTransform, leftImageTransform, middleImageTransform, rightImageTransform, fillImage);
+
+        RectTransform canvasRectTransform = canvas.GetComponent<RectTransform>();
+
+        recorder = new ViveGazeDataRecorder(gazePointPrefab, fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, leftImageTransform, middleImageTransform, rightImageTransform);
         UpdateDirection("Start");
 
     }
@@ -108,7 +111,7 @@ public class Instruction : MonoBehaviour
             {
                 recorder.EyeTracking();
                 hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the center of the screen";
-                if (recorder.CheckGaze("middle"))
+                if (recorder.CheckGaze("2"))
                 {
                     hintText.text = "Well done!";
                     numberController.HideAllNumbers();
@@ -148,7 +151,7 @@ public class Instruction : MonoBehaviour
             {
                 if (stage == 0)
                 {
-                    if (recorder.CheckGaze("right"))
+                    if (recorder.CheckGaze("3"))
                     {
                         stage++;
                         hintText.text = "Good job!";
@@ -161,7 +164,7 @@ public class Instruction : MonoBehaviour
                 }
                 else if (stage == 1)
                 {
-                    if (recorder.CheckGaze("left"))
+                    if (recorder.CheckGaze("1"))
                     {
                         hintText.text = "Smart!";
                         Time.timeScale = 1;
@@ -174,7 +177,7 @@ public class Instruction : MonoBehaviour
                 }
                 else if (stage == 2)
                 {
-                    if (recorder.CheckGaze("middle"))
+                    if (recorder.CheckGaze("2"))
                     {
                         hintText.text = "Excellent!";
                         Time.timeScale = 1;
@@ -187,7 +190,7 @@ public class Instruction : MonoBehaviour
                 }
                 else if (stage == 3)
                 {
-                    if (recorder.CheckGaze("middle"))
+                    if (recorder.CheckGaze("2"))
                     {
                         hintText.text = "Please do not move your eye, and covertly monitoring the number and press it!";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
@@ -204,7 +207,7 @@ public class Instruction : MonoBehaviour
                 }
                 else if (stage == 4)
                 {
-                    if (recorder.CheckGaze("middle"))
+                    if (recorder.CheckGaze("2"))
                     {
                         hintText.text = "Still do not move your eye, and covertly monitoring the number and press it!";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))

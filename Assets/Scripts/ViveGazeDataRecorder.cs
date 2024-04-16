@@ -26,14 +26,16 @@ public class ViveGazeDataRecorder : MonoBehaviour
     // Eye indicator UI 相关参数：
     private GameObject gazePointPrefab;  // 拖入一个预制体作为注视点的视觉表示
     private RectTransform canvasRectTransform;
+    private float canvasWidth;
+    private float canvasHeight;
     public Image fillImage;  // 拖拽你的进度条Image组件到这里
     private float gazeTime = 5f;  // 需要注视的时间，5秒
     private float timer = 0f;
 
     // 三个刺激源的碰撞体：
-    public RectTransform leftImageTransform;
-    public RectTransform middleImageTransform;
-    public RectTransform rightImageTransform;
+    public RectTransform rectTransform1;
+    public RectTransform rectTransform2;
+    public RectTransform rectTransform3;
 
     // Eye Gaze 自动校准算法相关参数：
     private List<Vector2> scaleFactorList = new List<Vector2>();  // 用于存储稳定的缩放因子
@@ -53,17 +55,19 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private Vector2 lastScaleFactor = new Vector2(0, 0);
     private float threshold = 15;
     private int errorCount = 0;
-    private bool hasCalibrated = false;
+    private static bool hasCalibrated = false;
     private static Vector2 averageScaleFactor = new Vector2(0, 0);
 
-    public ViveGazeDataRecorder(GameObject gazePointPrefab, RectTransform canvasRectTransform, RectTransform leftImageTransform, RectTransform middleImageTransform, RectTransform rightImageTransform, Image fillImage)
+    public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3)
     {
         this.gazePointPrefab = gazePointPrefab;
         this.canvasRectTransform = canvasRectTransform;
-        this.leftImageTransform = leftImageTransform;
-        this.middleImageTransform = middleImageTransform;
-        this.rightImageTransform = rightImageTransform;
+        this.rectTransform1 = rectTransform1;
+        this.rectTransform2 = rectTransform2;
+        this.rectTransform3 = rectTransform3;
         this.fillImage = fillImage;
+        this.canvasWidth = canvasWidth/2;
+        this.canvasHeight = canvasHight/2;
 
 
         // 设置应用程序的目标帧率为 120 FPS
@@ -136,11 +140,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 mouseScreenPosition.z = 700;  // 设置 Z 坐标为 700
 
                 Vector2 offset;
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(middleImageTransform, mouseScreenPosition, Camera.main, out offset);
-                float scaleFactorX = 350f;
-                float scaleFactorY = 175f;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform2, mouseScreenPosition, Camera.main, out offset);
 
-                offset = new Vector2(offset.x / scaleFactorX, offset.y / scaleFactorY);
+                offset = new Vector2(offset.x / canvasWidth, offset.y / canvasHeight);
                 //Debug.Log("Local Offset in Canvas: " + offset);
 
                 eyeGaze.x = offset.x;
@@ -158,7 +160,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
         if (eyeGaze.x != 0 && eyeGaze.y != 0 && !hasCalibrated) // 排除除零错误
         {
             Vector2 currentScaleFactor = new Vector2(gazePointPrefab.transform.localPosition.x / eyeGaze.x, gazePointPrefab.transform.localPosition.y / eyeGaze.y);
-            Debug.Log("currentScaleFactor: " + currentScaleFactor);
+            //Debug.Log("currentScaleFactor: " + currentScaleFactor);
             if (scaleFactorList.Count != 0)
             {
                 if (Vector2.Distance(lastScaleFactor, currentScaleFactor) < threshold)  // 0.05为缩放因子变化的阈值
@@ -199,9 +201,13 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
             return true;
         }
-
-        return false;
         
+        if (hasCalibrated)
+        {
+            return true;
+        }
+
+        return false;     
         
     }
 
@@ -245,9 +251,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 leftPupilDiameter = eyeData.verbose_data.left.pupil_diameter_mm;
                 rightPupilDiameter = eyeData.verbose_data.right.pupil_diameter_mm;
 
-                gazeAtLeft = IsGazeInsideRectTransform(gazePosition, leftImageTransform, "Left") ? 1 : 0;
-                gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, middleImageTransform, "Middle") ? 1 : 0;
-                gazeAtRight = IsGazeInsideRectTransform(gazePosition, rightImageTransform, "Right") ? 1 : 0;
+                gazeAtLeft = IsGazeInsideRectTransform(gazePosition, rectTransform1, "Left") ? 1 : 0;
+                gazeAtMiddle = IsGazeInsideRectTransform(gazePosition, rectTransform2, "Middle") ? 1 : 0;
+                gazeAtRight = IsGazeInsideRectTransform(gazePosition, rectTransform3, "Right") ? 1 : 0;
 
                 Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
                
@@ -261,18 +267,16 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 Vector3 mouseScreenPosition = Input.mousePosition;
                 mouseScreenPosition.z = 500;  // 设置 Z 坐标为 500
 
-                float scaleFactorX = 350f;
-                float scaleFactorY = 175f;
-
                 Vector2 offset;
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(middleImageTransform, mouseScreenPosition, Camera.main, out offset);
-                offset = new Vector2(offset.x / scaleFactorX, offset.y / scaleFactorY);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform2, mouseScreenPosition, Camera.main, out offset);
+                offset = new Vector2(offset.x / canvasWidth, offset.y / canvasHeight);
 
-                scaleFactorX = averageScaleFactor.x;//350f;
-                scaleFactorY = averageScaleFactor.y;//175f;
+                float scaleFactorX = averageScaleFactor.x;//350f;
+                float scaleFactorY = averageScaleFactor.y;//175f;
 
+                //Debug.Log("x1:" + averageScaleFactor.x + ":y1:" + averageScaleFactor.y);
                 offset = new Vector2(offset.x * scaleFactorX, offset.y * scaleFactorY);
-                Debug.Log("Local Offset in Canvas: " + offset);
+      
 
                 gazePosition = new Vector3(offset.x, offset.y, 0);
                 gazePointPrefab.transform.localPosition = gazePosition;      
@@ -345,9 +349,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
         bool isInside = false;
 
         // 检查 gazePosition 是否在 rectTransform 内
-        if (gazeLocalPosition.x >= (imageLocalPosition.x - 22.5) && gazeLocalPosition.x <= (imageLocalPosition.x + 22.5))
+        if (gazeLocalPosition.x >= (imageLocalPosition.x - rectTransform.sizeDelta.x/2) && gazeLocalPosition.x <= (imageLocalPosition.x + rectTransform.sizeDelta.x / 2))
         {
-            if (gazeLocalPosition.y >= (imageLocalPosition.y - 22.5) && gazeLocalPosition.y <= (imageLocalPosition.y + 22.5))
+            if (gazeLocalPosition.y >= (imageLocalPosition.y - rectTransform.sizeDelta.y / 2) && gazeLocalPosition.y <= (imageLocalPosition.y + rectTransform.sizeDelta.y / 2))
             {
                 isInside = true;
             }
@@ -360,16 +364,38 @@ public class ViveGazeDataRecorder : MonoBehaviour
         return isInside;
     }
 
+    public bool CheckGazeWithoutTimer(string name)
+    {
+        RectTransform rectTransform = rectTransform2;
+        if (name == "1")
+        {
+            rectTransform = rectTransform1;
+        }
+        else if (name == "3")
+        {
+            rectTransform = rectTransform3;
+        }
+
+        bool isGazing = IsGazeInsideRectTransform(gazePosition, rectTransform1, "1") || IsGazeInsideRectTransform(gazePosition, rectTransform2, "2") || IsGazeInsideRectTransform(gazePosition, rectTransform3, "3");
+
+        if(!isGazing)
+        {
+            timer = 0;
+            fillImage.fillAmount = 0;
+        }
+
+        return IsGazeInsideRectTransform(gazePosition, rectTransform, name);
+    }
     public bool CheckGaze(string name)
     {
-        RectTransform rectTransform = middleImageTransform;
-        if (name == "left")
+        RectTransform rectTransform = rectTransform2;
+        if (name == "1")
         {
-            rectTransform = leftImageTransform;
+            rectTransform = rectTransform1;
         }
-        else if(name == "right") 
+        else if(name == "3") 
         {
-            rectTransform = rightImageTransform;
+            rectTransform = rectTransform3;
         }
 
 
@@ -379,8 +405,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
         {
             // 更新计时器
             timer += Time.unscaledDeltaTime;
+      
             fillImage.fillAmount = timer / gazeTime;  // 更新进度条
-            Debug.Log(name + " " + timer);
+
             if (timer >= gazeTime)
             {
                 Debug.Log("Completed!");
@@ -389,7 +416,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
             }
 
             // 这里仅用于调试输出
-            // Debug.Log($"Gaze Position: {gazeLocalPosition}, is gazing: {isGazing}");
+            //Debug.Log($"Gaze Position: {gazePosition}, is gazing on: {name} which is {isGazing} and timer is {timer}");
         }
         else
         {
@@ -401,7 +428,13 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
         return false;
        
-    } 
+    }
+
+    public void ResetTimer()
+    {
+        timer = 0;
+        fillImage.fillAmount = 0;
+    }
 
     public void StopRecording()
     {

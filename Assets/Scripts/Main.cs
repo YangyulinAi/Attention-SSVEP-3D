@@ -103,7 +103,7 @@ public class Main : MonoBehaviour
         SetSSVEPController("SSVEP Right", ssvepRightFrequency, "rightNumberText", 2);
 
         arrowController = new ArrowController(blocks);
-        recorder = new ViveGazeDataRecorder(gazePointPrefab, canvasRectTransform, leftImageTransform, middleImageTransform, rightImageTransform, fillImage);
+        recorder = new ViveGazeDataRecorder(gazePointPrefab,fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, leftImageTransform, middleImageTransform, rightImageTransform);
 
         UpdateDirection("Start");
 
@@ -143,7 +143,7 @@ public class Main : MonoBehaviour
 
         if(selectedIndex >= selectedSprites.Length)
         {
-            SceneManager.LoadScene("EndOfBlock");
+            SceneManager.LoadScene("End");
         }
     }
 
