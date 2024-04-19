@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;  // For TextMeshProUGUI
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.Profiling;
 
 public class BeforeStart : MonoBehaviour
 {
@@ -59,25 +60,14 @@ public class BeforeStart : MonoBehaviour
             endButton.gameObject.SetActive(true);
             hintText.text = "Please focus your eye gaze to the any button";
 
-            if (recorder.CheckGazeWithoutTimer("1"))
+            switch (recorder.CurrentGazeOn())
             {
-                if (recorder.CheckGaze("1"))
-                    SceneManager.LoadScene("Experiment");
-
+                case "1": SceneManager.LoadScene("Experiment"); break;
+                case "2": SceneManager.LoadScene("Instruction"); break;
+                case "3": SceneManager.LoadScene("End"); break;
+                default: break;
             }
-
-            if (recorder.CheckGazeWithoutTimer("2"))
-            {
-                if (recorder.CheckGaze("2"))
-                    SceneManager.LoadScene("Instruction");
-
-            }
-            
-            if (recorder.CheckGazeWithoutTimer("3"))
-            {
-                if (recorder.CheckGaze("3"))
-                    SceneManager.LoadScene("End");
-            }
+   
         }
 
     }

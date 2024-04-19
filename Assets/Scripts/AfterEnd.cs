@@ -41,7 +41,7 @@ public class AfterEnd : MonoBehaviour
         InstructionButton.gameObject.SetActive(false);
         endButton.gameObject.SetActive(true);
 
-        if (recorder.CheckGaze("3"))
+        if (recorder.CurrentGazeOn() == "3")
         {
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
