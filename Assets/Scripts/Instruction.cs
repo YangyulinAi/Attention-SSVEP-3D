@@ -52,6 +52,13 @@ public class Instruction : MonoBehaviour
 
     public Image fillImage;
 
+
+    private Coroutine fadeCoroutine; // 用于存储协程的引用
+    public CanvasGroup canvasGroup;
+    public float fadeDuration = 0.5f;
+    public float visibleDuration = 0.1f;
+    private bool isHintStart = false;
+
     void Start()
     {
         // 查找场景中名为"CenterNumberText"的对象并获取其TextMeshProUGUI组件
@@ -91,6 +98,8 @@ public class Instruction : MonoBehaviour
         recorder = new ViveGazeDataRecorder(gazePointPrefab, fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, leftImageTransform, middleImageTransform, rightImageTransform);
         UpdateDirection("Start");
 
+        canvasGroup.alpha = 0;
+
     }
 
     private void Update()
@@ -110,14 +119,32 @@ public class Instruction : MonoBehaviour
             else
             {
                 recorder.EyeTracking();
-                hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the center of the screen";
-                if (recorder.HasGazeOn("2"))
+                hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the blinking area";
+
+                if (!isHintStart)
                 {
-                    hintText.text = "Well done!";
-                    numberController.HideAllNumbers();
-                    StartCoroutine(ChangeStage());
-                    start = true;
+                    canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 35, 0);
+                    StartHint();
                 }
+                else 
+                {
+                    if (recorder.GazeTouchStd2() == "2")
+                    {
+                        canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
+                        hintText.text = "When your eyes make contact with the target\n It will be locked until you are a certain range away from the target!";
+                    }
+                    if (recorder.HasGazeOn("2"))
+                    {
+                        StopHint();
+                        hintText.text = "Great!";
+                        numberController.HideAllNumbers();
+                        StartCoroutine(ChangeStage());
+                        start = true;
+                        recorder.ResetTimer();
+                    }
+                }
+
+                    
             }
             
             
@@ -150,59 +177,87 @@ public class Instruction : MonoBehaviour
             if (Time.timeScale == 0)
             {
                 if (stage == 0)
-                {
+                {                  
                     if (recorder.HasGazeOn("3"))
                     {
                         stage++;
-                        hintText.text = "Good job!";
+                        hintText.text = "The yellow cursor means you're looking at the correct position\n The blue one means you're looking at the edge and will pause the timer!";
                         Time.timeScale = 1;
+                        recorder.ResetTimer();
                     }
                     else
                     {
-                        hintText.text = "When you see only a right arrow, please move your eye gaze to the right cube";
+                        if (!isHintStart)
+                        {
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(195, 0, 0);
+                            StartHint();
+                        }
+                        hintText.text = "When you see only a right arrow, please move your eye gaze to the right blinking cube.";
                     }
                 }
                 else if (stage == 1)
-                {
+                {                   
                     if (recorder.HasGazeOn("1"))
                     {
-                        hintText.text = "Smart!";
+                        hintText.text = "Smart!\n When you see the X symbol appear in the centre of the screen\n Please move your eyes back to the centre of the screen and relax.";
                         Time.timeScale = 1;
                         stage++;
+                        recorder.ResetTimer();
                     }
                     else
                     {
-                        hintText.text = "When you see only a left arrow, please move your eye gaze to the left cube";
+                        if (!isHintStart)
+                        {
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(-195, 0, 0);
+                            StartHint();
+                        }
+                        hintText.text = "When you see only a left arrow, please move your eye gaze to the left blinking cube.";
                     }
                 }
                 else if (stage == 2)
-                {
+                {                  
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "Excellent!";
-                        Time.timeScale = 1;
-                        stage++;
+                        hintText.text = "The numbers are only 4 5 6 and you need to press the right buttons as much as possible.";
+                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        {
+                            hintText.text = "Excellent!\n Next, and most critically, you need to look at as many of the correct numbers as possible without moving your eyes, which is called \"covert visual attention.\"";
+                            Time.timeScale = 1;
+                            stage++;
+                            recorder.ResetTimer();
+                        }
                     }
                     else
                     {
-                        hintText.text = "When you see only a up arrow, please move your eye gaze to the middle cube";
+                        if (!isHintStart)
+                        {
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
+                            StartHint();
+                        }
+                        hintText.text = "When the down arrow appears, please move your eyes to the blinking square in the middle\n Each time, a random number will appear, you need to press the corresponding key on the keyboard";
                     }
                 }
                 else if (stage == 3)
-                {
+                {                   
                     if (recorder.HasGazeOn("2"))
                     {
                         hintText.text = "Please do not move your eye, and covertly monitoring the number and press it!";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
                         {
-                            hintText.text = "Brilliant!";
+                            hintText.text = "Brilliant!\n In the formal experiment there will be no auxiliary cursor, the rest of the steps are the same";
                             Time.timeScale = 1;
                             stage++;
+                            recorder.ResetTimer();
                         }
                     }
                     else
                     {
-                        hintText.text = "When you see up arrow with a right arrow, please keep your eye gaze to the middle cube";
+                        if (!isHintStart)
+                        {
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
+                            StartHint();
+                        }
+                        hintText.text = "When you see down arrow with a right arrow, please keep your eye gaze to the middle cube";
                     }
                 }
                 else if (stage == 4)
@@ -212,25 +267,86 @@ public class Instruction : MonoBehaviour
                         hintText.text = "Still do not move your eye, and covertly monitoring the number and press it!";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
                         {
-                            hintText.text = "Incredible! Now, please try by yourself";
+                            hintText.text = "Incredible!\n The experiment consists of the five cases shown above\n Now, please practice them before we officially start";
                             Time.timeScale = 1;
                             stage++;
+                            recorder.ResetTimer();
                         }
                     }
                     else
                     {
-                        hintText.text = "When you see up arrow with a left arrow, please keep your eye gaze to the middle cube";
+                        if (!isHintStart)
+                        {
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
+                            StartHint();
+                        }
+                        hintText.text = "When you see down arrow with a left arrow, please keep your eye gaze to the middle cube";
                     }
                 }
                 else
                 {
-                    hintText.text = " ";
+                    hintText.text = "Now, please try by youself before we start.";
                     Time.timeScale = 1;
                 }
 
             }
+            else
+            {
+                StopHint();
+            }
         } 
     }
+
+    private void StartHint()
+    {
+        fadeCoroutine = StartCoroutine(FadeRoutine());
+        isHintStart = true;
+    }
+
+    private void StopHint()
+    {
+        if (fadeCoroutine != null)
+        {
+            StopCoroutine(fadeCoroutine); // 停止当前协程
+            fadeCoroutine = null;
+        }
+        // 重置透明度或进行其他更新
+        canvasGroup.alpha = 0;
+        isHintStart = false;
+    }
+    private IEnumerator FadeRoutine()
+    {
+        while (true) // 创建一个无限循环
+        {
+            yield return StartCoroutine(FadeIn());
+            yield return new WaitForSecondsRealtime(visibleDuration);
+            yield return StartCoroutine(FadeOut());
+        }
+    }
+
+    private IEnumerator FadeIn()
+    {
+        while (canvasGroup.alpha < 1)
+        {
+            canvasGroup.alpha += Time.unscaledDeltaTime / fadeDuration; // 每帧逐渐增加透明度
+            yield return null;
+        }
+    }
+
+    private IEnumerator FadeOut()
+    {
+        while (canvasGroup.alpha > 0)
+        {
+            canvasGroup.alpha -= Time.unscaledDeltaTime / fadeDuration; // 每帧逐渐减少透明度
+            yield return null;
+        }
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
 
     private IEnumerator ChangeStage()
     {
@@ -289,7 +405,7 @@ public class Instruction : MonoBehaviour
         numberController.SetRandomNumber(numberMin, numberMax + 1);
 
         // Display the number based on the direction
-        numberController.ShowRandomNumberInDirection(direction);
+        if (stage >= 2) numberController.ShowRandomNumberInDirection(direction);
 
         Time.timeScale = 0;
 

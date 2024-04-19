@@ -389,6 +389,52 @@ public class ViveGazeDataRecorder : MonoBehaviour
         return gazeOn;
     }
 
+    public string GazeTouch()
+    {
+        string gazeOn = "0"; // gaze不在任何控件上
+        if (IsGazeInsideRectTransform(rectTransform1))
+        {
+                gazeOn = "1";
+        }
+        else if (IsGazeInsideRectTransform(rectTransform2))
+        {
+                gazeOn = "2";
+        }
+        else if (IsGazeInsideRectTransform(rectTransform3))
+        {
+                gazeOn = "3";
+        }
+        else
+        {
+            gazeOn = "0";
+        }
+
+        return gazeOn;
+    }
+
+    public string GazeTouchStd2()
+    {
+        string gazeOn = "0"; // gaze不在任何控件上
+        if (IsGazeInsideRectTransformStd2(rectTransform1))
+        {
+            gazeOn = "1";
+        }
+        else if (IsGazeInsideRectTransformStd2(rectTransform2))
+        {
+            gazeOn = "2";
+        }
+        else if (IsGazeInsideRectTransformStd2(rectTransform3))
+        {
+            gazeOn = "3";
+        }
+        else
+        {
+            gazeOn = "0";
+        }
+
+        return gazeOn;
+
+    }
     private bool TimingGaze(RectTransform rectTransform)
     {
         // 检测Gaze是否在特定图像的范围内
@@ -397,17 +443,15 @@ public class ViveGazeDataRecorder : MonoBehaviour
             LockGaze(rectTransform, "regular");
             if (UnscaledTiming(1))
             {
-                ResetTimer();
                 return true;
             }
 
         }
         else if (IsGazeInsideRectTransformStd2(rectTransform))
         {
-            LockGaze(rectTransform, "slow");
-            if (UnscaledTiming(0.1f))//0.1 倍速
+            LockGaze(rectTransform, "pause");
+            if (UnscaledTiming(0))//暂停
             {
-                ResetTimer();
                 return true;
             }
         }
@@ -511,6 +555,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
         // 重置计时器和进度条
         timer = 0;
         fillImage.fillAmount = 0;
+        UnlockGaze();
     }
 
 
