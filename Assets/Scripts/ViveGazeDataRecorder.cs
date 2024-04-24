@@ -20,8 +20,10 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private Vector3 gazePosition; // 当前眼动参数
     private int gazeAtLeft, gazeAtMiddle, gazeAtRight;
     private bool gazePositionUpdated = false;
-    float leftPupilDiameter;
-    float rightPupilDiameter;
+    private float leftPupilDiameter;
+    private float rightPupilDiameter;
+    private float leftEyeOpenness;
+    private float rightEyeOpenness;
 
     // Eye indicator UI 相关参数：
     private GameObject gazePointPrefab;  // 拖入一个预制体作为注视点的视觉表示
@@ -56,7 +58,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private static bool hasCalibrated = false;
     private static Vector2 averageScaleFactor = new Vector2(0, 0);
 
-    public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3)
+    public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3, bool startRecord)
     {
         this.gazePointPrefab = gazePointPrefab;
         this.canvasRectTransform = canvasRectTransform;
@@ -69,21 +71,26 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
 
         // 设置应用程序的目标帧率为 120 FPS
-        Application.targetFrameRate = 120; 
+        Application.targetFrameRate = 120;
 
-        // 文件夹创建
+        // 文件夹名
         string directoryPath = Path.Combine(Application.dataPath, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-        Directory.CreateDirectory(directoryPath);
-
-        // 打开一个文件用于写入数据
-        string filePath = Path.Combine(directoryPath, "GazeDatabyVive.csv");
-        fileWriter = new StreamWriter(filePath, true);
-        fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Left Pupil Diameter, Right Pupil Diameter, Gaze on Left, Gaze on Middle, Gaze on Right");
 
         // 初始化一个新的线程来处理数据收集，然后启动这个线程
         dataCollectionThread = new Thread(DataCollectionTask);
-        dataCollectionThread.Start();
 
+        if (startRecord)
+        {
+            // 文件夹创建
+            Directory.CreateDirectory(directoryPath);
+            // 打开一个文件用于写入数据
+            string filePath = Path.Combine(directoryPath, "GazeDatabyVive.csv");
+            fileWriter = new StreamWriter(filePath, true);
+            fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Left Pupil Diameter, Right Pupil Diameter, Gaze on Left, Gaze on Middle, Gaze on Right");
+            // 开始录制
+            dataCollectionThread.Start();
+        }
+        
         // 获取引用主摄像机
         mainCamera = Camera.main;
 
@@ -243,7 +250,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 gazePointPrefab.transform.localPosition = gazePosition;
                 gazePositionUpdated = true;
 
-                DataUpdate(eyeData.verbose_data.left.pupil_diameter_mm, eyeData.verbose_data.right.pupil_diameter_mm);
+                DataUpdate(eyeData.verbose_data.left.pupil_diameter_mm, eyeData.verbose_data.right.pupil_diameter_mm, eyeData.verbose_data.left.eye_openness, eyeData.verbose_data.right.eye_openness);
 
             }
         }
@@ -279,17 +286,21 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
     }
 
-    private void DataUpdate(float leftPupilDiameter, float rightPupilDiameter)
+    private void DataUpdate(float leftPupilDiameter, float rightPupilDiameter, float leftEyeOpenness, float rightEyeOpenness)
     {
         // 记录眼睛瞳孔直径信息
         this.leftPupilDiameter = leftPupilDiameter;
         this.rightPupilDiameter = rightPupilDiameter;
 
+        // 记录眼睛开合
+        this.leftEyeOpenness = leftEyeOpenness;
+        this.rightEyeOpenness = rightEyeOpenness;
+
         gazeAtLeft = IsGazeInsideRectTransform(rectTransform1) ? 1 : 0;
         gazeAtMiddle = IsGazeInsideRectTransform(rectTransform2) ? 1 : 0;
         gazeAtRight = IsGazeInsideRectTransform(rectTransform3) ? 1 : 0;
 
-        Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
+        //Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
     }
 
     private void DataCollectionTask()
@@ -304,9 +315,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 string str_timestamp = ConvertTimestampToDateTime(timestamp);
 
                 // 构建数据行
-                string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
                     "'" + timestamp.ToString(), "'" + str_timestamp, gazePosition.x, gazePosition.y,
-                    leftPupilDiameter, rightPupilDiameter, gazeAtLeft, gazeAtMiddle, gazeAtRight);
+                    leftPupilDiameter, rightPupilDiameter, leftEyeOpenness, rightEyeOpenness,gazeAtLeft, gazeAtMiddle, gazeAtRight);
 
                 lock (fileWriter)
                 {

@@ -95,7 +95,7 @@ public class Instruction : MonoBehaviour
 
         RectTransform canvasRectTransform = canvas.GetComponent<RectTransform>();
 
-        recorder = new ViveGazeDataRecorder(gazePointPrefab, fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, leftImageTransform, middleImageTransform, rightImageTransform);
+        recorder = new ViveGazeDataRecorder(gazePointPrefab, fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, leftImageTransform, middleImageTransform, rightImageTransform, false);
         UpdateDirection("Start");
 
         canvasGroup.alpha = 0;

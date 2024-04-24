@@ -30,7 +30,7 @@ public class AfterEnd : MonoBehaviour
         RectTransform rectTransform2 = InstructionButton.GetComponent<RectTransform>();
         RectTransform rectTransform3 = endButton.GetComponent<RectTransform>();
 
-        recorder = new ViveGazeDataRecorder(gazePointPrefab,fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, rectTransform1, rectTransform2, rectTransform3);
+        recorder = new ViveGazeDataRecorder(gazePointPrefab,fillImage, canvasRectTransform, canvasRectTransform.sizeDelta.x, canvasRectTransform.sizeDelta.y, rectTransform1, rectTransform2, rectTransform3, false);
     }
 
     private void Update()
@@ -52,8 +52,4 @@ public class AfterEnd : MonoBehaviour
 
     }
 
-    private void OnDestroy()
-    {
-        recorder.StopRecording();
-    }
 }
