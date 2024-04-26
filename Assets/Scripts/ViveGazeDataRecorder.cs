@@ -7,6 +7,8 @@ using UnityEngine;
 using ViveSR.anipal;
 using ViveSR.anipal.Eye;  // SRanipal SDK
 using System.Collections.Generic;
+using Tobii.XR.GazeModifier;
+using Unity.VisualScripting;
 
 public class ViveGazeDataRecorder : MonoBehaviour
 {
@@ -41,22 +43,24 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
     // Eye Gaze 自动校准算法相关参数：
     private List<Vector2> scaleFactorList = new List<Vector2>();  // 用于存储稳定的缩放因子
+    private List<Vector2> tempScaleFactorList = new List<Vector2>();  // 用于存储不稳定的缩放因子
 
     private Vector3[] positions = new Vector3[]
     {
         new Vector3(-200, 100, 0),
         new Vector3(200, 100, 0),
-        new Vector3(200, 0, 0),
         new Vector3(200, -100, 0),
-        new Vector3(0, -100, 0),
-        new Vector3(-200, -100, 0),
+        new Vector3(-200, -100, 0)
     };
     private int currentTarget = 0;
     private Vector2 lastScaleFactor = new Vector2(0, 0);
     private float threshold = 15;
     private int errorCount = 0;
     private static bool hasCalibrated = false;
+    private bool finishedAll = false;
     private static Vector2 averageScaleFactor = new Vector2(0, 0);
+
+    private bool finished = true;
 
     public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3, bool startRecord)
     {
@@ -66,8 +70,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
         this.rectTransform2 = rectTransform2;
         this.rectTransform3 = rectTransform3;
         this.fillImage = fillImage;
-        this.canvasWidth = canvasWidth/2;
-        this.canvasHeight = canvasHight/2;
+        this.canvasWidth = canvasWidth / 2;
+        this.canvasHeight = canvasHight / 2;
 
 
         // 设置应用程序的目标帧率为 120 FPS
@@ -90,7 +94,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
             // 开始录制
             dataCollectionThread.Start();
         }
-        
+
         // 获取引用主摄像机
         mainCamera = Camera.main;
 
@@ -100,21 +104,13 @@ public class ViveGazeDataRecorder : MonoBehaviour
             //Debug.LogError("SRanipal Eye initialization failed.");
             Debug.Log("SRanipal Eye initialization failed.");
         }
+
+        Debug.Log(averageScaleFactor);
     }
 
 
     public bool EyeCalibration()
     {
-        // 校准游标初始化
-        float speed = 50f;  // 控制移动速度
-
-        if (Vector3.Distance(gazePointPrefab.transform.localPosition, positions[currentTarget]) < 0.1f)
-        {
-            currentTarget = (currentTarget + 1) % positions.Length;
-
-        }
-        gazePointPrefab.transform.localPosition = Vector3.MoveTowards(gazePointPrefab.transform.localPosition, positions[currentTarget], speed * Time.deltaTime);
-
         EyeData_v2 eyeData = new EyeData_v2();//  EyeData_v2 类型的变量，用来存储获取的眼动数据。EyeData_v2 是存储详细眼动追踪信息的结构体，包括瞳孔直径、注视点坐标等。
         Vector2 eyeGaze = new Vector2(0, 0);
 
@@ -134,7 +130,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 eyeGaze.y = gazePosition.y;
             }
         }
-        
+
         else
         {
             // 鼠标模拟数据
@@ -161,20 +157,59 @@ public class ViveGazeDataRecorder : MonoBehaviour
             }
         }
 
+        float speed = 1000f;  // 控制移动速度
+
+        if (finished)
+        {  
+            if (currentTarget < positions.Length)
+            {
+                if (Vector3.Distance(gazePointPrefab.transform.localPosition, positions[currentTarget]) < 0.1f)
+                {  
+
+                    if(tempScaleFactorList.Count > 0)
+                    {
+                        //Debug.Log(tempScaleFactorList.Count);
+                        //Vector2 current = CalculateAverageScaleFactor(tempScaleFactorList);
+
+                        //Debug.Log(current);
+                        scaleFactorList.AddRange(tempScaleFactorList);
+                    }
+
+                    tempScaleFactorList.Clear();
+
+                    ResetTimer();
+                    currentTarget++;
+
+                    finished = false;
+                }
+                else
+                {
+                    gazePointPrefab.transform.localPosition = Vector3.MoveTowards(gazePointPrefab.transform.localPosition, positions[currentTarget], speed * Time.deltaTime);
+                }     
+            }
+            else
+            {
+                finishedAll = true;
+                hasCalibrated = true;
+            }     
+            
+        }
+
         // 自适应算法
-        if (eyeGaze.x != 0 && eyeGaze.y != 0 && !hasCalibrated) // 排除除零错误
+        if (eyeGaze.x != 0 && eyeGaze.y != 0 && !finished && !hasCalibrated) // 排除除零错误
         {
             Vector2 currentScaleFactor = new Vector2(gazePointPrefab.transform.localPosition.x / eyeGaze.x, gazePointPrefab.transform.localPosition.y / eyeGaze.y);
-            //Debug.Log("currentScaleFactor: " + currentScaleFactor);
-            if (scaleFactorList.Count != 0)
+            
+            if (tempScaleFactorList.Count != 0)
             {
                 if (Vector2.Distance(lastScaleFactor, currentScaleFactor) < threshold)  // 0.05为缩放因子变化的阈值
                 {
-                    ScaledTiming();
-                    scaleFactorList.Add(currentScaleFactor);  // 添加稳定的缩放因子到列表中
+                    //Debug.Log("lastScaleFactor:" + lastScaleFactor + " currentScaleFactor:" + threshold);
+                    finished = ScaledTiming();
+                    tempScaleFactorList.Add(currentScaleFactor);  // 添加稳定的缩放因子到列表中
 
                 }
-                else if(errorCount <= 5)
+                else if (errorCount <= 5)
                 {
                     errorCount++;
                 }
@@ -182,46 +217,45 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 {
                     ResetTimer();
                     errorCount = 0;
-                    scaleFactorList.Clear();  // 清空列表，因为出现了不稳定的情况
+                    tempScaleFactorList.Clear();  // 清空列表，因为出现了不稳定的情况
                 }
             }
             else
             {
-                scaleFactorList.Add(currentScaleFactor);
+                tempScaleFactorList.Add(currentScaleFactor);
             }
+            
             lastScaleFactor = currentScaleFactor;
-
         }
 
         // 校准成功
-        if (timer >= gazeTime)
+        if (hasCalibrated && finishedAll)
         {
-            averageScaleFactor = CalculateAverageScaleFactor();
+            averageScaleFactor = CalculateAverageScaleFactor(scaleFactorList);
             fillImage.fillAmount = 1;
-            hasCalibrated = true;
             Debug.Log("Calibration completed successfully. Average Scale Factor: " + averageScaleFactor);
             // 执行校准成功后的操作
 
             return true;
         }
-        
-        if (hasCalibrated)
-        {
-            return true;
-        }
 
-        return false;     
-        
+        if (hasCalibrated) { return true; }
+
+        return false;
+
     }
 
-    Vector2 CalculateAverageScaleFactor()
+    Vector2 CalculateAverageScaleFactor(List<Vector2> li)
     {
         Vector2 sum = Vector2.zero;
-        foreach (Vector2 scaleFactor in scaleFactorList)
+        foreach (Vector2 scaleFactor in li)
         {
+            
             sum += scaleFactor;
         }
-        return sum / scaleFactorList.Count;  // 计算平均值
+
+        //Debug.Log(li.Count);
+        return sum / li.Count;  // 计算平均值
     }
 
     public void EyeTracking()
@@ -246,7 +280,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 float scaleFactorY = averageScaleFactor.y;
 
                 gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 0);
-                
+
                 gazePointPrefab.transform.localPosition = gazePosition;
                 gazePositionUpdated = true;
 
@@ -271,15 +305,15 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
                 //Debug.Log("x1:" + averageScaleFactor.x + ":y1:" + averageScaleFactor.y);
                 offset = new Vector2(offset.x * scaleFactorX, offset.y * scaleFactorY);
-      
+
 
                 gazePosition = new Vector3(offset.x, offset.y, 0);
-                gazePointPrefab.transform.localPosition = gazePosition;      
+                gazePointPrefab.transform.localPosition = gazePosition;
 
             }
             else
             {
-                gazePosition = new Vector3(0,200,0);
+                gazePosition = new Vector3(0, 200, 0);
                 gazePointPrefab.transform.localPosition = gazePosition;
             }
         }
@@ -317,7 +351,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 // 构建数据行
                 string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
                     "'" + timestamp.ToString(), "'" + str_timestamp, gazePosition.x, gazePosition.y,
-                    leftPupilDiameter, rightPupilDiameter, leftEyeOpenness, rightEyeOpenness,gazeAtLeft, gazeAtMiddle, gazeAtRight);
+                    leftPupilDiameter, rightPupilDiameter, leftEyeOpenness, rightEyeOpenness, gazeAtLeft, gazeAtMiddle, gazeAtRight);
 
                 lock (fileWriter)
                 {
@@ -387,7 +421,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 gazeOn = "2";
         }
         else if (IsGazeInsideRectTransform(rectTransform3))
-        {           
+        {
             if (UnscaledTiming(1))
                 gazeOn = "3";
         }
@@ -405,15 +439,15 @@ public class ViveGazeDataRecorder : MonoBehaviour
         string gazeOn = "0"; // gaze不在任何控件上
         if (IsGazeInsideRectTransform(rectTransform1))
         {
-                gazeOn = "1";
+            gazeOn = "1";
         }
         else if (IsGazeInsideRectTransform(rectTransform2))
         {
-                gazeOn = "2";
+            gazeOn = "2";
         }
         else if (IsGazeInsideRectTransform(rectTransform3))
         {
-                gazeOn = "3";
+            gazeOn = "3";
         }
         else
         {
@@ -538,10 +572,17 @@ public class ViveGazeDataRecorder : MonoBehaviour
         return isInside;
     }
 
-    private void ScaledTiming()
+    private bool ScaledTiming() 
     {
-        timer += Time.deltaTime;
-        fillImage.fillAmount = timer / gazeTime;  // 更新进度条
+        if (timer < gazeTime)
+        {
+            timer += Time.deltaTime;
+            fillImage.fillAmount = timer / gazeTime;  // 更新进度条
+            return false;
+        }
+        
+        return true;
+
     }
 
     private bool UnscaledTiming(float factor)
@@ -569,11 +610,10 @@ public class ViveGazeDataRecorder : MonoBehaviour
         UnlockGaze();
     }
 
-
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    /// 
+    ///
     public void StopRecording()
     {
         // 在对象销毁时，停止数据收集线程并等待其结束
