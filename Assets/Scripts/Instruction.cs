@@ -131,7 +131,7 @@ public class Instruction : MonoBehaviour
                     if (recorder.GazeTouchStd2() == "2")
                     {
                         canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
-                        hintText.text = "When your eyes make contact with the target\n It will be locked until you are a certain range away from the target!";
+                        hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the blinking area";
                     }
                     if (recorder.HasGazeOn("2"))
                     {
@@ -189,7 +189,7 @@ public class Instruction : MonoBehaviour
                     {
                         if (!isHintStart)
                         {
-                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(195, 0, 0);
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(200, 0, 0);
                             StartHint();
                         }
                         hintText.text = "When you see only a right arrow, please move your eye gaze to the right blinking cube.";
@@ -199,7 +199,7 @@ public class Instruction : MonoBehaviour
                 {                   
                     if (recorder.HasGazeOn("1"))
                     {
-                        hintText.text = "Smart!\n When you see the X symbol appear in the centre of the screen\n Please move your eyes back to the centre of the screen and relax.";
+                        hintText.text = "When you see the X symbol appear in the centre of the screen\n Please move your eyes back to the centre of the screen and relax.";
                         Time.timeScale = 1;
                         stage++;
                         recorder.ResetTimer();
@@ -208,7 +208,7 @@ public class Instruction : MonoBehaviour
                     {
                         if (!isHintStart)
                         {
-                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(-195, 0, 0);
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(-200, 0, 0);
                             StartHint();
                         }
                         hintText.text = "When you see only a left arrow, please move your eye gaze to the left blinking cube.";
@@ -218,10 +218,10 @@ public class Instruction : MonoBehaviour
                 {                  
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "The numbers are only 4 5 6 and you need to press the right buttons as much as possible.";
+                        hintText.text = "This time12W3ED4 move your eyes to the middle blinking square\n Each time, a random number will appear, you need to press the corresponding key on the keyboard.";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
                         {
-                            hintText.text = "Excellent!\n Next, and most critically, you need to look at as many of the correct numbers as possible without moving your eyes, which is called \"covert visual attention.\"";
+                            hintText.text = "The numbers are only 4 5 6 and you need to press the right buttons as much as possible.";
                             Time.timeScale = 1;
                             stage++;
                             recorder.ResetTimer();
@@ -234,14 +234,14 @@ public class Instruction : MonoBehaviour
                             canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When the down arrow appears, please move your eyes to the blinking square in the middle\n Each time, a random number will appear, you need to press the corresponding key on the keyboard";
+                        hintText.text = "This time move your eyes to the middle blinking square\n Each time, a random number will appear, you need to press the corresponding key on the keyboard";
                     }
                 }
                 else if (stage == 3)
                 {                   
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "Please do not move your eye, and covertly monitoring the number and press it!";
+                        hintText.text = "When you see down arrow with a right arrow, please keep your eye gaze to the middle cube, and covertly monitoring the number and press it!";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
                         {
                             hintText.text = "Brilliant!\n In the formal experiment there will be no auxiliary cursor, the rest of the steps are the same";
@@ -257,14 +257,14 @@ public class Instruction : MonoBehaviour
                             canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When you see down arrow with a right arrow, please keep your eye gaze to the middle cube";
+                        hintText.text = "When you see down arrow with a right arrow, please keep your eye gaze to the middle cube, and covertly monitoring the number and press it!";
                     }
                 }
                 else if (stage == 4)
                 {
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "Still do not move your eye, and covertly monitoring the number and press it!";
+                        hintText.text = "When you see down arrow with a left arrow, please keep your eye gaze to the middle cube, and covertly monitoring the number and press it!";
                         if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
                         {
                             hintText.text = "Incredible!\n The experiment consists of the five cases shown above\n Now, please practice them before we officially start";
@@ -280,7 +280,7 @@ public class Instruction : MonoBehaviour
                             canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When you see down arrow with a left arrow, please keep your eye gaze to the middle cube";
+                        hintText.text = "When you see down arrow with a left arrow, please keep your eye gaze to the middle cube, and covertly monitoring the number and press it!";
                     }
                 }
                 else
