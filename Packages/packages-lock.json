@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.tobii.xr.sdk": {
-      "version": "file:C:/Users/m1760/OneDrive/Remote Disk (F)/UTS PhD/PhD Notebook/Tools/Plugins/VR Unity/TobiiXRSDK_3.0.1.179",
+      "version": "file:C:/Users/cibci/Desktop/Yangyulin/TobiiXRSDK_3.0.1.179",
       "depth": 0,
       "source": "local",
       "dependencies": {

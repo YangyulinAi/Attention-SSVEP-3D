@@ -60,6 +60,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private bool finishedAll = false;
     private static Vector2 averageScaleFactor = new Vector2(0, 0);
 
+    private float preX;
+    private float preY;
     private bool finished = true;
 
     public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3, bool startRecord)
@@ -83,7 +85,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
         // 初始化一个新的线程来处理数据收集，然后启动这个线程
         dataCollectionThread = new Thread(DataCollectionTask);
 
-        if (startRecord)
+        if (true)//startRecord)
         {
             // 文件夹创建
             Directory.CreateDirectory(directoryPath);
@@ -98,6 +100,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
         // 获取引用主摄像机
         mainCamera = Camera.main;
 
+        preX = 0;
+        preY = 0;
+
         // 初始化眼动追踪模块
         if (SRanipal_API.Initial(SRanipal_Eye_v2.ANIPAL_TYPE_EYE_V2, IntPtr.Zero) != ViveSR.Error.WORK)
         {
@@ -105,7 +110,6 @@ public class ViveGazeDataRecorder : MonoBehaviour
             Debug.Log("SRanipal Eye initialization failed.");
         }
 
-        Debug.Log(averageScaleFactor);
     }
 
 
@@ -117,8 +121,10 @@ public class ViveGazeDataRecorder : MonoBehaviour
         // 获取眼动数据
         if (SRanipal_Eye_Framework.Status == SRanipal_Eye_Framework.FrameworkStatus.WORKING)
         {
+            Debug.Log("data from eye");
             if (SRanipal_Eye_API.GetEyeData_v2(ref eyeData) == ViveSR.Error.WORK)
             {
+                
                 // VR 场景真实数据
                 Vector3 gazeDirection = eyeData.verbose_data.combined.eye_data.gaze_direction_normalized;
                 Vector3 gazeOrigin = eyeData.verbose_data.combined.eye_data.gaze_origin_mm * 0.001f;  // Convert mm to meters
@@ -130,9 +136,10 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 eyeGaze.y = gazePosition.y;
             }
         }
-
         else
         {
+            Debug.Log("data from mouse");
+
             // 鼠标模拟数据
             if (Input.GetMouseButton(0))  // 当鼠标左键被点击
             {
@@ -195,11 +202,17 @@ public class ViveGazeDataRecorder : MonoBehaviour
             
         }
 
+        if(eyeGaze.x == preX && eyeGaze.y == preY)
+        {
+            return false;
+        }
         // 自适应算法
         if (eyeGaze.x != 0 && eyeGaze.y != 0 && !finished && !hasCalibrated) // 排除除零错误
         {
             Vector2 currentScaleFactor = new Vector2(gazePointPrefab.transform.localPosition.x / eyeGaze.x, gazePointPrefab.transform.localPosition.y / eyeGaze.y);
-            
+            preX = eyeGaze.x;
+            preY = eyeGaze.y;
+
             if (tempScaleFactorList.Count != 0)
             {
                 if (Vector2.Distance(lastScaleFactor, currentScaleFactor) < threshold)  // 0.05为缩放因子变化的阈值
@@ -209,7 +222,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                     tempScaleFactorList.Add(currentScaleFactor);  // 添加稳定的缩放因子到列表中
 
                 }
-                else if (errorCount <= 5)
+                else if (errorCount <= 10)
                 {
                     errorCount++;
                 }
