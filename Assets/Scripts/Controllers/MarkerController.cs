@@ -25,14 +25,20 @@ public class MarkerController
         {"Up Right", 99},
 
         // Number Shown
-        {"Four", 4},
-        {"Five", 5},
-        {"Six", 6},
+        {"One", 10},
+        {"Two", 20},
+        {"Three", 30},
+        {"Four", 40},
+        {"Five", 50},
+        {"Six", 60},
+        {"Seven", 70},
+        {"Eight", 80},
+        {"Nine", 90},
 
         // User Res
-        {"4", 40},
-        {"5", 50},
-        {"6", 60},
+        {"0", 0},//Not press
+        {"1", 1},// Pressed
+
         {"UserRes", 254},
         { "UserNotRes", 255},
 

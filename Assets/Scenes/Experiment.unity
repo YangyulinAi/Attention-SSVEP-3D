@@ -1331,6 +1331,7 @@ GameObject:
   - component: {fileID: 1733283884}
   - component: {fileID: 1733283883}
   - component: {fileID: 1733283886}
+  - component: {fileID: 1733283887}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -1426,6 +1427,43 @@ MonoBehaviour:
   middleImageTransform: {fileID: 1203469614}
   rightImageTransform: {fileID: 223824732}
   fillImage: {fileID: 143525351}
+  triggerAction:
+    actionPath: /actions/default/in/InteractUI
+    needsReinit: 0
+  doubleClickThreshold: 0.3
+--- !u!114 &1733283887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733283882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a5fb0ca93b55ef4b8d54b512b103341, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  poseAction:
+    actionPath: /actions/default/in/Pose
+    needsReinit: 0
+  inputSource: 0
+  origin: {fileID: 0}
+  onTransformUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  onTransformChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onConnectedChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onTrackingChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onDeviceIndexChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  broadcastDeviceChanges: 1
 --- !u!1 &1841472162
 GameObject:
   m_ObjectHideFlags: 0

@@ -34,9 +34,15 @@ public class NumberController
     {
         switch (this.randomNumber)
         {
+            case "1": return "One";
+            case "2": return "Two";
+            case "3": return "Three";
             case "4": return "Four";
             case "5": return "Five";
             case "6": return "Six";
+            case "7": return "Seven";
+            case "8": return "Eight";
+            case "9": return "Nine";
         }
         return "null";
     }
@@ -44,7 +50,14 @@ public class NumberController
 
     public bool CompareUserInput(string input)
     {
-        return input != null && input == randomNumber;
+        if(input != null)
+        {
+            if(int.Parse(randomNumber)%2 == int.Parse(input)) //假设奇数按，那么相等情况下就是奇数
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void ShowRandomNumberInDirection(string direction)

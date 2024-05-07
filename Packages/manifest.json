@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.tobii.xr.sdk": "file:C:/Users/cibci/Desktop/Yangyulin/TobiiXRSDK_3.0.1.179",
+    "com.tobii.xr.sdk": "file:C:/Users/m1760/OneDrive/Remote Disk (F)/UTS PhD/PhD Notebook/Tools/Plugins/VR Unity/TobiiXRSDK_3.0.1.179",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.3.1",
     "com.unity.feature.development": "1.0.1",
@@ -10,6 +10,7 @@
     "com.unity.visualscripting": "1.9.2",
     "com.unity.xr.management": "4.4.1",
     "com.unity.xr.openxr": "1.10.0",
+    "com.valvesoftware.unity.openvr": "file:../Assets/SteamVR/OpenVRUnityXRPackage/Editor/com.valvesoftware.unity.openvr-1.2.1.tgz",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

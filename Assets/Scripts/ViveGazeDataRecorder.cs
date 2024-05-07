@@ -64,6 +64,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private float preY;
     private bool finished = true;
 
+    private bool hasShownHintinConsole = false;
+
     public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3, bool startRecord)
     {
         this.gazePointPrefab = gazePointPrefab;
@@ -112,6 +114,14 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
     }
 
+    public bool CheckConnection()
+    {
+        if (SRanipal_API.Initial(SRanipal_Eye_v2.ANIPAL_TYPE_EYE_V2, IntPtr.Zero) != ViveSR.Error.WORK)
+        {
+            return false;
+        }
+        return true;
+    }
 
     public bool EyeCalibration()
     {
@@ -121,7 +131,12 @@ public class ViveGazeDataRecorder : MonoBehaviour
         // 获取眼动数据
         if (SRanipal_Eye_Framework.Status == SRanipal_Eye_Framework.FrameworkStatus.WORKING)
         {
-            Debug.Log("data from eye");
+            if(!hasShownHintinConsole)
+            {
+                Debug.Log("data from eye");
+                hasShownHintinConsole = true;
+            }
+
             if (SRanipal_Eye_API.GetEyeData_v2(ref eyeData) == ViveSR.Error.WORK)
             {
                 
@@ -138,7 +153,11 @@ public class ViveGazeDataRecorder : MonoBehaviour
         }
         else
         {
-            Debug.Log("data from mouse");
+            if (!hasShownHintinConsole)
+            {
+                Debug.Log("data from mouse");
+                hasShownHintinConsole= true;
+            }
 
             // 鼠标模拟数据
             if (Input.GetMouseButton(0))  // 当鼠标左键被点击
@@ -292,7 +311,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 float scaleFactorX = averageScaleFactor.x;
                 float scaleFactorY = averageScaleFactor.y;
 
-                gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 0);
+                gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 1);
 
                 gazePointPrefab.transform.localPosition = gazePosition;
                 gazePositionUpdated = true;
@@ -320,13 +339,13 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 offset = new Vector2(offset.x * scaleFactorX, offset.y * scaleFactorY);
 
 
-                gazePosition = new Vector3(offset.x, offset.y, 0);
+                gazePosition = new Vector3(offset.x, offset.y, 1);
                 gazePointPrefab.transform.localPosition = gazePosition;
 
             }
             else
             {
-                gazePosition = new Vector3(0, 200, 0);
+                gazePosition = new Vector3(0, 200, 1);
                 gazePointPrefab.transform.localPosition = gazePosition;
             }
         }
@@ -525,7 +544,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
     public void LockGaze(RectTransform rectTransform, string mode)
     {
         Vector3 imageLocalPosition = rectTransform.localPosition;
-        gazePointPrefab.transform.localPosition = imageLocalPosition;
+        gazePointPrefab.transform.localPosition = new Vector3(imageLocalPosition.x, imageLocalPosition.y, 1);
         MeshRenderer renderer = gazePointPrefab.GetComponent<MeshRenderer>();
         Material newMaterial = new Material(Shader.Find("Standard"));
         if (mode == "regular")
@@ -607,7 +626,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
         if (timer >= gazeTime)
         {
-            Debug.Log("Completed!");
+            //Debug.Log("Completed!");
             fillImage.fillAmount = 1;
             return true;
         }

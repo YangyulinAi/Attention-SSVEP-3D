@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;  // For TextMeshProUGUI
 using UnityEngine.SceneManagement;
-
+using Valve.VR;
 public class Instruction : MonoBehaviour
 {
     public Sprite[] sprites;// Array storing the 6 sprites
@@ -13,8 +13,8 @@ public class Instruction : MonoBehaviour
     private float ssvepMiddleFrequency = 15f;
     private float ssvepRightFrequency = 20f;
 
-    public int numberMin = 4;
-    public int numberMax = 6;
+    public int numberMin = 1;
+    public int numberMax = 9;
     private float numberShowTime = 3f;
     private float numberHideTimeMax = 3f;
 
@@ -58,6 +58,9 @@ public class Instruction : MonoBehaviour
     public float fadeDuration = 0.5f;
     public float visibleDuration = 0.1f;
     private bool isHintStart = false;
+
+    public SteamVR_Action_Boolean triggerAction = SteamVR_Actions.default_InteractUI;
+
 
     void Start()
     {
@@ -153,7 +156,7 @@ public class Instruction : MonoBehaviour
         {
             recorder.EyeTracking();
 
-            if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)) && !hasUserPressed)
+            if ((Input.GetMouseButtonDown(0) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand)) && !hasUserPressed)
             {
                 string key = Input.inputString;
                 if (!string.IsNullOrEmpty(key))
@@ -219,7 +222,7 @@ public class Instruction : MonoBehaviour
                     if (recorder.HasGazeOn("2"))
                     {
                         hintText.text = "This time12W3ED4 move your eyes to the middle blinking square\n Each time, a random number will appear, you need to press the corresponding key on the keyboard.";
-                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
                             hintText.text = "The numbers are only 4 5 6 and you need to press the right buttons as much as possible.";
                             Time.timeScale = 1;
@@ -242,7 +245,7 @@ public class Instruction : MonoBehaviour
                     if (recorder.HasGazeOn("2"))
                     {
                         hintText.text = "When you see down arrow with a right arrow, please keep your eye gaze to the middle cube, and covertly monitoring the number and press it!";
-                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
                             hintText.text = "Brilliant!\n In the formal experiment there will be no auxiliary cursor, the rest of the steps are the same";
                             Time.timeScale = 1;
@@ -265,7 +268,7 @@ public class Instruction : MonoBehaviour
                     if (recorder.HasGazeOn("2"))
                     {
                         hintText.text = "When you see down arrow with a left arrow, please keep your eye gaze to the middle cube, and covertly monitoring the number and press it!";
-                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
                             hintText.text = "Incredible!\n The experiment consists of the five cases shown above\n Now, please practice them before we officially start";
                             Time.timeScale = 1;
