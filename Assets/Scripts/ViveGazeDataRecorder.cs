@@ -48,8 +48,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private Vector3[] positions = new Vector3[]
     {
         new Vector3(-200, 100, 0),
-        new Vector3(200, 100, 0),
-        new Vector3(200, -100, 0),
+        new Vector3(150, 100, 0),
+        new Vector3(150, -100, 0),
         new Vector3(-200, -100, 0)
     };
     private int currentTarget = 0;
@@ -236,7 +236,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
             {
                 if (Vector2.Distance(lastScaleFactor, currentScaleFactor) < threshold)  // 0.05为缩放因子变化的阈值
                 {
-                    //Debug.Log("lastScaleFactor:" + lastScaleFactor + " currentScaleFactor:" + threshold);
+                    Debug.Log("localPosition.x: " + gazePointPrefab.transform.localPosition.x + " eyeGaze.x: " + eyeGaze.x + " localPosition.y: " + gazePointPrefab.transform.localPosition.y + " eyeGaze.y:" + eyeGaze.y);
+                    Debug.Log("lastScaleFactor:" + lastScaleFactor);
                     finished = ScaledTiming();
                     tempScaleFactorList.Add(currentScaleFactor);  // 添加稳定的缩放因子到列表中
 

@@ -261,6 +261,7 @@ public class Instruction : MonoBehaviour
                         hintText.text = "Down arrow, move eyes to the middle cube, and when finish, press the trigger.";
                         if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
+                            numberController.SetAllTextToGreen();
                             hintText.text = "Odd number press trigger once, even number press trigger twice.";
                             Time.timeScale = 1;
                             stage++;
@@ -284,6 +285,7 @@ public class Instruction : MonoBehaviour
                         hintText.text = "Down right arrow, please keep eyes to the middle cube, and covertly monitoring the number on the right and press the trigger.";
                         if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
+                            numberController.SetAllTextToGreen();
                             hintText.text = "Again, Odd number press trigger once, even number press trigger twice.";
                             Time.timeScale = 1;
                             stage++;
@@ -307,6 +309,7 @@ public class Instruction : MonoBehaviour
                         hintText.text = "Down left arrow, please keep eyes to the middle cube, and covertly monitoring the number on the left and press the trigger";
                         if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
+                            numberController.SetAllTextToGreen();
                             hintText.text = "Incredible, please practice one more time before we start";
                             Time.timeScale = 1;
                             stage++;

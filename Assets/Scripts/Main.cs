@@ -144,6 +144,7 @@ public class Main : MonoBehaviour
             if(userAction != "Not Clicked") 
             {
                 SendMarker("UserRes");
+                numberController.SetAllTextToGreen();
                 string key;
 
                 if (userAction == "single")
