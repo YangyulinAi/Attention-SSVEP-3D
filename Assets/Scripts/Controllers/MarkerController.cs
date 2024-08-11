@@ -48,7 +48,11 @@ public class MarkerController
 
         // User Res Checker
         {"True", 201},
-        {"False", 202}
+        {"False", 202},
+
+        // Bad Epoch
+        {"Bad", 222}
+
     };
 
     public MarkerController(string IP, int port)

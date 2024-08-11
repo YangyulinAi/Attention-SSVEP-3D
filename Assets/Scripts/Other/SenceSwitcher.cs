@@ -6,16 +6,16 @@ public class SceneSwitcher : MonoBehaviour
     void Update()
     {
         // 检测空格键按下
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            SwitchToScene("Experiment"); 
-        }
+        //if (Input.GetKeyDown(KeyCode.Return))
+        //{
+        //    SwitchToScene("Experiment"); 
+        //}
 
         // 检测ESC键按下
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            QuitExperiment(); // 终止实验
-        }
+        //if (Input.GetKeyDown(KeyCode.Escape))
+        //{
+        //    QuitExperiment(); // 终止实验
+        //}
     }
 
     public void SwitchToScene(string sceneName)

@@ -466,6 +466,7 @@ public class Instruction : MonoBehaviour
             if (controller != null)
             {
                 controller.SetFrequency(frequency);
+                StartCoroutine(controller.SwitchColorCoroutine());
 
                 //  Find and set the Text object
                 GameObject textObject = GameObject.Find(textName);

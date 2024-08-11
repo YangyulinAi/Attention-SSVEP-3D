@@ -3,14 +3,13 @@ using System.IO;
 using UnityEngine.UI;
 using System.Threading;
 using UnityEngine;
-//using UnityEngine.UIElements;
 using ViveSR.anipal;
 using ViveSR.anipal.Eye;  // SRanipal SDK
 using System.Collections.Generic;
 using Tobii.XR.GazeModifier;
 using Unity.VisualScripting;
 
-public class ViveGazeDataRecorder : MonoBehaviour
+public class ViveGazeDataRecorder 
 {
     // 文件读写和线程管理 相关参数：
     private StreamWriter fileWriter;
@@ -85,16 +84,17 @@ public class ViveGazeDataRecorder : MonoBehaviour
         string directoryPath = Path.Combine(Application.dataPath, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
         // 初始化一个新的线程来处理数据收集，然后启动这个线程
-        dataCollectionThread = new Thread(DataCollectionTask);
+        
 
-        if (true)//startRecord)
+        if (startRecord)
         {
+            dataCollectionThread = new Thread(DataCollectionTask);
             // 文件夹创建
             Directory.CreateDirectory(directoryPath);
             // 打开一个文件用于写入数据
             string filePath = Path.Combine(directoryPath, "GazeDatabyVive.csv");
             fileWriter = new StreamWriter(filePath, true);
-            fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Left Pupil Diameter, Right Pupil Diameter, Gaze on Left, Gaze on Middle, Gaze on Right");
+            fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Left Pupil Diameter, Right Pupil Diameter, Left Eye Openness, Right Eye Openness, Gaze on Left, Gaze on Middle, Gaze on Right");
             // 开始录制
             dataCollectionThread.Start();
         }
@@ -348,6 +348,9 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 gazePosition = new Vector3(0, 200, 1);
                 gazePointPrefab.transform.localPosition = gazePosition;
             }
+
+            gazePositionUpdated = true;
+            DataUpdate(-1, -1, -1, -1);
         }
 
     }
@@ -362,16 +365,24 @@ public class ViveGazeDataRecorder : MonoBehaviour
         this.leftEyeOpenness = leftEyeOpenness;
         this.rightEyeOpenness = rightEyeOpenness;
 
-        gazeAtLeft = IsGazeInsideRectTransform(rectTransform1) ? 1 : 0;
-        gazeAtMiddle = IsGazeInsideRectTransform(rectTransform2) ? 1 : 0;
-        gazeAtRight = IsGazeInsideRectTransform(rectTransform3) ? 1 : 0;
+        // 记录注视位置
+        this.gazeAtLeft = IsGazeInsideRectTransform(rectTransform1) ? 1 : 0;
+        this.gazeAtMiddle = IsGazeInsideRectTransform(rectTransform2) ? 1 : 0;
+        this.gazeAtRight = IsGazeInsideRectTransform(rectTransform3) ? 1 : 0;
 
         //Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
     }
 
+    public void AddMarkerToFile(string marker)
+    {
+        string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
+                   "'" + "Event Marker", "'" + marker, "-", "-", "-", "-", "-", "-", "-", "-", "-");
+        fileWriter.WriteLine(dataLine);
+
+    }
+
     private void DataCollectionTask()
     {
-
         while (keepCollecting)
         {
             if (gazePositionUpdated)

@@ -77,31 +77,9 @@ public class Main : MonoBehaviour
 
     void Start()
     {
-        // 查找场景中名为"CenterNumberText"的对象并获取其TextMeshProUGUI组件
-        centerNumberText = GameObject.Find("centerNumberText")?.GetComponent<TextMeshProUGUI>();
-        leftNumberText = GameObject.Find("leftNumberText")?.GetComponent<TextMeshProUGUI>();
-        rightNumberText = GameObject.Find("rightNumberText")?.GetComponent<TextMeshProUGUI>();
-
-        // 检查是否成功获取了所有组件
-        if (centerNumberText == null || leftNumberText == null || rightNumberText == null)
-        {
-            Debug.LogError("<color=red>One or more TextMeshProUGUI objects not found in the scene.</color>");
-        }
-
-        GameObject imageObject = GameObject.Find("Image");
-        if (imageObject != null)
-        {
-            targetImage = imageObject.GetComponent<Image>();
-        }
-        else
-        {
-            Debug.LogError("<color=red>Image object not found in the scene.</color>");
-        }
-
-
-        numberController = new NumberController(centerNumberText, leftNumberText, rightNumberText);
-        spriteController = new SpriteController(sprites, ChangeSpriteInImage);
-        markerController = new MarkerController(IP, port);
+        SetNumberController();
+        SetSpriteController();
+        SetMarkerController();
 
         // Find each square and set its blinking frequency
         SetSSVEPController("SSVEP Left", ssvepLeftFrequency, "leftNumberText", 0);
@@ -129,40 +107,10 @@ public class Main : MonoBehaviour
             start = true;
         }
 
+        // Handle user input
         if (!hasUserPressed)
         {
-            string userAction = "Not Clicked";
-            if(recorder.CheckConnection())
-            {
-                userAction = CheckTriggerClick();
-            }
-            else
-            {
-                userAction = CheckMouseClick();
-            }
-                
-            if(userAction != "Not Clicked") 
-            {
-                SendMarker("UserRes");
-                string key;
-
-                if (userAction == "single")
-                {
-                    key = "1";         
-                }
-                else
-                {
-                    key = "0";
-                }
-
-                SendMarker(key);
-                if (numberController.CompareUserInput(key)) SendMarker("True");
-                else SendMarker("False");
-                Debug.Log("<color=#00FF00>User Res</color>");
-                hasUserPressed = true;
-
-            }
-           
+            StartCoroutine(HandleUserInput());
         }
 
         if(currentRunTimes >= maxRunTimes)
@@ -176,6 +124,111 @@ public class Main : MonoBehaviour
             recorder.StopRecording();
             SceneManager.LoadScene("End");
         }
+    }
+
+    private void SetSpriteController()
+    {
+        GameObject imageObject = GameObject.Find("Image");
+        if (imageObject != null)
+        {
+            targetImage = imageObject.GetComponent<Image>();
+        }
+        else
+        {
+            Debug.LogError("<color=red>Image object not found in the scene.</color>");
+        }
+
+
+        spriteController = new SpriteController(sprites, ChangeSpriteInImage);
+    }
+
+    private void SetNumberController()
+    {
+        // 查找场景中名为"CenterNumberText"的对象并获取其TextMeshProUGUI组件
+        centerNumberText = GameObject.Find("centerNumberText")?.GetComponent<TextMeshProUGUI>();
+        leftNumberText = GameObject.Find("leftNumberText")?.GetComponent<TextMeshProUGUI>();
+        rightNumberText = GameObject.Find("rightNumberText")?.GetComponent<TextMeshProUGUI>();
+
+        // 检查是否成功获取了所有组件
+        if (centerNumberText == null || leftNumberText == null || rightNumberText == null)
+        {
+            Debug.LogError("<color=red>One or more TextMeshProUGUI objects not found in the scene.</color>");
+        }
+
+        numberController = new NumberController(centerNumberText, leftNumberText, rightNumberText);
+    }
+
+    private void SetMarkerController()
+    {
+        markerController = new MarkerController(IP, port);
+    }
+
+    private void SetSSVEPController(string blockName, float frequency, string textName, int index)
+    {
+        blocks[index] = GameObject.Find(blockName); // GameObject[]
+        if (blocks[index] != null)
+        {
+            SSVEPController controller = blocks[index].GetComponent<SSVEPController>();
+            if (controller != null)
+            {
+                controller.SetFrequency(frequency);
+                StartCoroutine(controller.SwitchColorCoroutine());
+                //  Find and set the Text object
+                GameObject textObject = GameObject.Find(textName);
+                if (textObject != null)
+                {
+                    controller.SetTextObject(textObject);
+                }
+                else
+                {
+                    Debug.LogError($"<color=red>Text object named {textName} not found</color>");
+                }
+            }
+            else
+            {
+                Debug.LogError($"<color=red>SSVEPController not found on {blockName}</color>");
+            }
+        }
+        else
+        {
+            Debug.LogError($"<color=red>Block named {blockName} not found</color>");
+        }
+    }
+
+    private IEnumerator HandleUserInput()
+    {
+        string userAction = "Not Clicked";
+
+        if (recorder.CheckConnection())
+        {
+            userAction = CheckTriggerClick();
+        }
+        else
+        {
+            userAction = CheckMouseClick();
+        }
+
+        if (userAction != "Not Clicked")
+        {
+            SendMarker("UserRes");
+            string key = userAction == "single" ? "1" : "0";
+
+            SendMarker(key);
+
+            if (numberController.CompareUserInput(key))
+            {
+                SendMarker("True");
+            }
+            else
+            {
+                SendMarker("False");
+            }
+
+            Debug.Log("<color=#00FF00>User Res</color>");
+            hasUserPressed = true;
+        }
+
+        yield return null;
     }
 
 
@@ -268,7 +321,7 @@ public class Main : MonoBehaviour
                 SendMarker(direction);
 
                 // Call ShowRandomNumber using the current sprite's name as a parameter
-                ShowRandomNumber(direction);
+                ShowRandomNumber(direction); //这里的协程出现了阻塞，SSVEP闪烁频率不易过高
                 breakStage = true;
                 
             }
@@ -286,7 +339,7 @@ public class Main : MonoBehaviour
                 UpdateDirection(direction);
                 breakStage = false;
             }
-            
+
             yield return new WaitForSeconds(stageInterval); // Wait for 5 seconds by default
            
         }
@@ -329,37 +382,7 @@ public class Main : MonoBehaviour
     }
 
 
-    private void SetSSVEPController(string blockName, float frequency, string textName, int index)
-    {
-        blocks[index] = GameObject.Find(blockName);
-        if (blocks[index] != null)
-        {
-            SSVEPController controller = blocks[index].GetComponent<SSVEPController>();
-            if (controller != null)
-            {
-                controller.SetFrequency(frequency);
-
-                //  Find and set the Text object
-                GameObject textObject = GameObject.Find(textName);
-                if (textObject != null)
-                {
-                    controller.SetTextObject(textObject);
-                }
-                else
-                {
-                    Debug.LogError($"<color=red>Text object named {textName} not found</color>");
-                }
-            }
-            else
-            {
-                Debug.LogError($"<color=red>SSVEPController not found on {blockName}</color>");
-            }
-        }
-        else
-        {
-            Debug.LogError($"<color=red>Block named {blockName} not found</color>");
-        }
-    }
+    
 
 
     private void SendMarker(string marker)
