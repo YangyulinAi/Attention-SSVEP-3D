@@ -110,7 +110,43 @@ public class Main : MonoBehaviour
         // Handle user input
         if (!hasUserPressed)
         {
+<<<<<<< HEAD
             StartCoroutine(HandleUserInput());
+=======
+            string userAction = "Not Clicked";
+            if(recorder.CheckConnection())
+            {
+                userAction = CheckTriggerClick();
+            }
+            else
+            {
+                userAction = CheckMouseClick();
+            }
+                
+            if(userAction != "Not Clicked") 
+            {
+                SendMarker("UserRes");
+                numberController.SetAllTextToGreen();
+                string key;
+
+                if (userAction == "single")
+                {
+                    key = "1";         
+                }
+                else
+                {
+                    key = "0";
+                }
+
+                SendMarker(key);
+                if (numberController.CompareUserInput(key)) SendMarker("True");
+                else SendMarker("False");
+                Debug.Log("<color=#00FF00>User Res</color>");
+                hasUserPressed = true;
+
+            }
+           
+>>>>>>> f9913fd476f6ef904e2a6b8730e6f09750a24784
         }
 
         if(currentRunTimes >= maxRunTimes)

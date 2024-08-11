@@ -65,16 +65,19 @@ public class NumberController
         switch (direction)
         {
             case "Up":
+                centerNumberText.color = Color.red;
                 centerNumberText.text = randomNumber;
                 centerNumberText.gameObject.SetActive(true);
                 break;
             case "Left":
             case "Up Left":
+                leftNumberText.color = Color.red;
                 leftNumberText.text = randomNumber;
                 leftNumberText.gameObject.SetActive(true);
                 break;
             case "Right":
             case "Up Right":
+                rightNumberText.color = Color.red;
                 rightNumberText.text = randomNumber;
                 rightNumberText.gameObject.SetActive(true);
                 break;
@@ -86,5 +89,12 @@ public class NumberController
         centerNumberText.gameObject.SetActive(false);
         leftNumberText.gameObject.SetActive(false);
         rightNumberText.gameObject.SetActive(false);
+    }
+
+    public void SetAllTextToGreen()
+    {
+        centerNumberText.color = Color.green;
+        leftNumberText.color = Color.green;
+         rightNumberText.color = Color.green;
     }
 }
