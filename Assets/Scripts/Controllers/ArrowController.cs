@@ -32,14 +32,22 @@ public class ArrowController
                 SetBlinking("SSVEP Left", false);
                 SetBlinking("SSVEP Right", false);
                 break;
-            case "Left":
-            case "Up Left":
+            case "Left": // 隐蔽观察左边方块，中间不闪烁
+                SetBlinking("SSVEP Middle", false);
+                SetBlinking("SSVEP Left", true);
+                SetBlinking("SSVEP Right", false);
+                break;
+            case "Up Left":// 隐蔽观察左边方块，中间闪烁
                 SetBlinking("SSVEP Middle", true);
                 SetBlinking("SSVEP Left", true);
                 SetBlinking("SSVEP Right", false);
                 break;
-            case "Right":
-            case "Up Right":
+            case "Right": // 隐蔽观察右边方块，中间不闪烁
+                SetBlinking("SSVEP Middle", false);
+                SetBlinking("SSVEP Left", false);
+                SetBlinking("SSVEP Right", true);
+                break;
+            case "Up Right":// 隐蔽观察右边方块，中间闪烁
                 SetBlinking("SSVEP Middle", true);
                 SetBlinking("SSVEP Left", false);
                 SetBlinking("SSVEP Right", true);

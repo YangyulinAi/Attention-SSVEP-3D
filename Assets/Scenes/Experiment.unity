@@ -1409,13 +1409,13 @@ MonoBehaviour:
   sprites:
   - {fileID: 21300000, guid: bfb1a40bb8e04ad4ea06ce5100f41291, type: 3}
   - {fileID: 21300000, guid: 90f33ae65fc362b438a11b10ef464599, type: 3}
-  - {fileID: 21300000, guid: b2271e079e70d6c4dbee30583586e16b, type: 3}
-  - {fileID: 21300000, guid: 6e5eee0c05fcf7b439b27ea85bcb070e, type: 3}
+  - {fileID: 21300000, guid: 90e127db07a8eb542a422512cb421d2c, type: 3}
+  - {fileID: 21300000, guid: 30990340d6554dc439a6db77a98c2e70, type: 3}
   - {fileID: 21300000, guid: 73451632092f79b4697b3a1c061327bc, type: 3}
   - {fileID: 21300000, guid: 361f83b54856ee1448cf806818183bba, type: 3}
   - {fileID: 21300000, guid: 91e3f51b2db613346a2e4c0f13d4dc7d, type: 3}
   stageInterval: 8
-  selectedSprites: 0300000004000000050000000000000002000000
+  selectedSprites: 0000000002000000030000000400000005000000
   maxRunTimes: 5
   numberMin: 4
   numberMax: 6

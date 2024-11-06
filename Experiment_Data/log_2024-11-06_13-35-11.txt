@@ -1,0 +1,32 @@
+Log Start
+2024-11-06 13:35:11: Logging started.
+2024-11-06 13:35:20: Set frequency: 9.00Hz  Actual frequency: 6.95Hz
+2024-11-06 13:35:21: Set frequency: 11.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:22: Set frequency: 11.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:23: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:24: Set frequency: 11.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:24: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:25: Set frequency: 11.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:26: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:27: Set frequency: 11.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:28: Set frequency: 11.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:29: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:30: Set frequency: 9.00Hz  Actual frequency: 92.25Hz
+2024-11-06 13:35:31: Set frequency: 11.00Hz  Actual frequency: 23.40Hz
+2024-11-06 13:35:32: Set frequency: 9.00Hz  Actual frequency: 8.79Hz
+2024-11-06 13:35:32: Set frequency: 11.00Hz  Actual frequency: 11.23Hz
+2024-11-06 13:35:11: Logging started.
+2024-11-06 13:35:45: Set frequency: 7.00Hz  Actual frequency: 6.89Hz
+2024-11-06 13:35:46: Set frequency: 7.00Hz  Actual frequency: 3.00Hz
+2024-11-06 13:35:47: Set frequency: 7.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:48: Set frequency: 7.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:49: Set frequency: 7.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:50: Set frequency: 7.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:35:51: Set frequency: 7.00Hz  Actual frequency: 1.97Hz
+2024-11-06 13:35:52: Set frequency: 7.00Hz  Actual frequency: 44.40Hz
+2024-11-06 13:36:05: Set frequency: 9.00Hz  Actual frequency: 6.43Hz
+2024-11-06 13:36:07: Set frequency: 9.00Hz  Actual frequency: 0.99Hz
+2024-11-06 13:36:08: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:36:09: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:36:10: Set frequency: 9.00Hz  Actual frequency: 0.00Hz
+2024-11-06 13:36:11: Set frequency: 9.00Hz  Actual frequency: 43.88Hz

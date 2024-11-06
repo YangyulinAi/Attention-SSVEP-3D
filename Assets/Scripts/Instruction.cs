@@ -11,9 +11,9 @@ public class Instruction : MonoBehaviour
     public Sprite[] sprites;// Array storing the 6 sprites
     public TextMeshProUGUI hintText;
 
-    private float ssvepLeftFrequency = 10f;
-    private float ssvepMiddleFrequency = 15f;
-    private float ssvepRightFrequency = 20f;
+    private float ssvepLeftFrequency = 7f;
+    private float ssvepMiddleFrequency = 9f;
+    private float ssvepRightFrequency = 11f;
 
     public int numberMin = 1;
     public int numberMax = 9;
@@ -21,7 +21,7 @@ public class Instruction : MonoBehaviour
     private float numberHideTimeMax = 3f;
 
     private int stageInterval = 8;
-    private int[] selectedSprites = new int[10]{ 3,2,0,5,4, 3, 2, 0, 5, 4 };
+    private int[] selectedSprites = new int[10]{ 3, 2, 0, 5, 4, 3, 2, 0, 5, 4 };
     private int maxRunTimes = 1;
 
     private TextMeshProUGUI centerNumberText, leftNumberText, rightNumberText;
@@ -149,7 +149,7 @@ public class Instruction : MonoBehaviour
                 canvas.enabled = true;
                 instruction.enabled = false;
 
-                if (false)   //!calibration)
+                if (!calibration)
                 {
                     hintText.text = "Eye Gaze calibration\n Please gazing the moving cube";
                     if (recorder.EyeCalibration())
@@ -165,7 +165,7 @@ public class Instruction : MonoBehaviour
 
                     if (!isHintStart)
                     {
-                        canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 35, 0);
+                        canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                         StartHint();
                     }
                     else
@@ -218,7 +218,7 @@ public class Instruction : MonoBehaviour
             {
                 if (stage == 0)
                 {                  
-                    if (recorder.HasGazeOn("3"))
+                    if (recorder.HasGazeOn("2"))
                     {
                         stage++;
                         hintText.text = "Amazing!";
@@ -229,15 +229,15 @@ public class Instruction : MonoBehaviour
                     {
                         if (!isHintStart)
                         {
-                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(200, 0, 0);
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "Right arrow, please move eyes to the right blinking cube.";
+                        hintText.text = "Right arrow, keep your eyes on the middle and move your attention to the right blinking cube.";
                     }
                 }
                 else if (stage == 1)
                 {                   
-                    if (recorder.HasGazeOn("1"))
+                    if (recorder.HasGazeOn("2"))
                     {
                         hintText.text = "X symbol, please move eyes to the centre and relax.";
                         Time.timeScale = 1;
@@ -248,10 +248,10 @@ public class Instruction : MonoBehaviour
                     {
                         if (!isHintStart)
                         {
-                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(-200, 0, 0);
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "Left arrow, please move your eyes to the left blinking cube.";
+                        hintText.text = "Left arrow, keep your eyes on the middle and move your attention to the left blinking cube.";
                     }
                 }
                 else if (stage == 2)
