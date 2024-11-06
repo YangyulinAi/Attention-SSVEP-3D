@@ -15,7 +15,7 @@ using UnityEngine.UI;
 
 public class ArrowController
 {
-    private GameObject[] blocks;
+    private GameObject[] blocks; // SSVEP Controller x 3
     public ArrowController(GameObject[] blocks)
     {
         this.blocks = blocks;

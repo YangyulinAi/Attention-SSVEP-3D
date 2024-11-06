@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.tobii.xr.sdk": "file:C:/Users/cibci/Desktop/Yangyulin/TobiiXRSDK_3.0.1.179",
+    "com.tobii.xr.sdk": "file:C:/Users/m1760/OneDrive/Remote Disk (F)/UTS PhD/PhD Notebook/Tools/Plugins/VR Unity/TobiiXRSDK_3.0.1.179",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.3.1",
     "com.unity.feature.development": "1.0.1",

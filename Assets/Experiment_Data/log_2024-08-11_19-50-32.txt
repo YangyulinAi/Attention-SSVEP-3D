@@ -1,2 +1,0 @@
-Log Start
-2024-08-11 19:50:32: Logging started.

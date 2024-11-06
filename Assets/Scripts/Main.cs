@@ -67,7 +67,7 @@ public class Main : MonoBehaviour
     ///  Local Variables
     /// </summary>
     private bool start = false;
-    private bool breakStage = false;
+    private bool breakStage = true;
     private bool hasUserPressed = true;// Will be set false in Update()
 
     public SteamVR_Action_Boolean triggerAction = SteamVR_Actions.default_InteractUI;
@@ -99,7 +99,7 @@ public class Main : MonoBehaviour
     {
         recorder.EyeTracking();
 
-        //开始前时候按下空格，开始一个block
+        // 开始前是否按下空格，开始一个block
         if (Input.GetKeyDown(KeyCode.Space) && !start)
         {
             numberController.HideAllNumbers();
@@ -108,58 +108,33 @@ public class Main : MonoBehaviour
         }
 
         // Handle user input
-        if (!hasUserPressed)
+        if (!hasUserPressed && UserInputDetected())
         {
-<<<<<<< HEAD
-            StartCoroutine(HandleUserInput());
-=======
-            string userAction = "Not Clicked";
-            if(recorder.CheckConnection())
-            {
-                userAction = CheckTriggerClick();
-            }
-            else
-            {
-                userAction = CheckMouseClick();
-            }
-                
-            if(userAction != "Not Clicked") 
-            {
-                SendMarker("UserRes");
-                numberController.SetAllTextToGreen();
-                string key;
-
-                if (userAction == "single")
-                {
-                    key = "1";         
-                }
-                else
-                {
-                    key = "0";
-                }
-
-                SendMarker(key);
-                if (numberController.CompareUserInput(key)) SendMarker("True");
-                else SendMarker("False");
-                Debug.Log("<color=#00FF00>User Res</color>");
-                hasUserPressed = true;
-
-            }
-           
->>>>>>> f9913fd476f6ef904e2a6b8730e6f09750a24784
+            HandleUserInput();
         }
 
-        if(currentRunTimes >= maxRunTimes)
+        if (currentRunTimes >= maxRunTimes)
         {
             currentRunTimes = 0;
             selectedIndex++;
+
+            if (selectedIndex >= selectedSprites.Length)
+            {
+                recorder.StopRecording();
+                SceneManager.LoadScene("End");
+            }
         }
 
-        if(selectedIndex >= selectedSprites.Length)
+        
+    }
+    private bool UserInputDetected()
+    {
+        // 检测输入设备上的输入事件，如按键、点击等
+        if (Input.GetMouseButtonDown(0) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
         {
-            recorder.StopRecording();
-            SceneManager.LoadScene("End");
+            return true;
         }
+        return false;
     }
 
     private void SetSpriteController()
@@ -208,8 +183,9 @@ public class Main : MonoBehaviour
             if (controller != null)
             {
                 controller.SetFrequency(frequency);
-                StartCoroutine(controller.SwitchColorCoroutine());
-                //  Find and set the Text object
+ 
+                // StartCoroutine(controller.SwitchColorCoroutine());
+                // Find and set the Text object
                 GameObject textObject = GameObject.Find(textName);
                 if (textObject != null)
                 {
@@ -231,7 +207,8 @@ public class Main : MonoBehaviour
         }
     }
 
-    private IEnumerator HandleUserInput()
+
+    private void HandleUserInput()
     {
         string userAction = "Not Clicked";
 
@@ -263,9 +240,8 @@ public class Main : MonoBehaviour
             Debug.Log("<color=#00FF00>User Res</color>");
             hasUserPressed = true;
         }
-
-        yield return null;
     }
+
 
 
     private string CheckTriggerClick()
@@ -348,16 +324,15 @@ public class Main : MonoBehaviour
             if (!breakStage)
             {
                 hasUserPressed = false;
+                direction = spriteController.ChangeSprite(selectedSprites[selectedIndex]);// Get the current sprite's name/direction
+                UpdateDirection(direction);
+                
                 SendMarker("Start"); //encode nullable byte
+                SendMarker(direction);
                 Debug.Log("*** Task Stage ***");
 
-                direction = spriteController.ChangeSprite(selectedSprites[selectedIndex]);// Get the current sprite's name/direction
-
-                UpdateDirection(direction);
-                SendMarker(direction);
-
                 // Call ShowRandomNumber using the current sprite's name as a parameter
-                ShowRandomNumber(direction); //这里的协程出现了阻塞，SSVEP闪烁频率不易过高
+                ShowRandomNumber(direction); 
                 breakStage = true;
                 
             }
@@ -372,6 +347,7 @@ public class Main : MonoBehaviour
                 SendMarker("End"); //encode nullable byte
                 Debug.Log("*** Break Stage ***");
                 direction = spriteController.ChangeBreakSprite();// Change to the last sprite (e.g., 'X' sign)
+
                 UpdateDirection(direction);
                 breakStage = false;
             }

@@ -1,0 +1,21 @@
+Log Start
+2024-10-11 13:48:22: Logging started.
+2024-10-11 13:48:33: Set frequency: 12.00Hz  Actual frequency: 0.29Hz
+2024-10-11 13:48:33: Set frequency: 15.00Hz  Actual frequency: 0.29Hz
+2024-10-11 13:48:34: Set frequency: 12.00Hz  Actual frequency: 101.26Hz
+2024-10-11 13:48:35: Set frequency: 15.00Hz  Actual frequency: 79.16Hz
+2024-10-11 13:48:36: Set frequency: 12.00Hz  Actual frequency: 12.43Hz
+2024-10-11 13:48:40: Set frequency: 15.00Hz  Actual frequency: 15.45Hz
+2024-10-11 13:48:49: Set frequency: 15.00Hz  Actual frequency: 1.79Hz
+2024-10-11 13:48:50: Set frequency: 12.00Hz  Actual frequency: 99.71Hz
+2024-10-11 13:48:51: Set frequency: 12.00Hz  Actual frequency: 16.85Hz
+2024-10-11 13:48:55: Set frequency: 15.00Hz  Actual frequency: 15.41Hz
+2024-10-11 13:48:56: Set frequency: 12.00Hz  Actual frequency: 11.82Hz
+2024-10-11 13:49:05: Set frequency: 12.00Hz  Actual frequency: 1.45Hz
+2024-10-11 13:49:06: Set frequency: 15.00Hz  Actual frequency: 100.31Hz
+2024-10-11 13:49:07: Set frequency: 12.00Hz  Actual frequency: 17.38Hz
+2024-10-11 13:49:07: Set frequency: 15.00Hz  Actual frequency: 47.69Hz
+2024-10-11 13:49:08: Set frequency: 15.00Hz  Actual frequency: 14.83Hz
+2024-10-11 13:49:10: Set frequency: 15.00Hz  Actual frequency: 15.30Hz
+2024-10-11 13:49:11: Set frequency: 12.00Hz  Actual frequency: 11.81Hz
+2024-10-11 13:49:12: Set frequency: 12.00Hz  Actual frequency: 12.36Hz

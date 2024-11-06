@@ -1401,9 +1401,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c57db9390bc22f47ac1e57840eb2554, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ssvepLeftFrequency: 9
-  ssvepMiddleFrequency: 7
-  ssvepRightFrequency: 11
+  ssvepLeftFrequency: 10
+  ssvepMiddleFrequency: 7.5
+  ssvepRightFrequency: 15
   IP: 192.168.1.11
   port: 9999
   sprites:

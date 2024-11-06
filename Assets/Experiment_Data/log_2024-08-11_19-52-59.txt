@@ -1,3 +1,0 @@
-Log Start
-2024-08-11 19:52:59: Logging started.
-2024-08-11 19:53:07: Set frequency: 15  Actual frequency: 0

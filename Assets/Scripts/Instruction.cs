@@ -462,16 +462,15 @@ public class Instruction : MonoBehaviour
 
     private void SetSSVEPController(string blockName, float frequency, string textName, int index)
     {
-        blocks[index] = GameObject.Find(blockName);
+        blocks[index] = GameObject.Find(blockName); // GameObject[]
         if (blocks[index] != null)
         {
             SSVEPController controller = blocks[index].GetComponent<SSVEPController>();
             if (controller != null)
             {
                 controller.SetFrequency(frequency);
-                StartCoroutine(controller.SwitchColorCoroutine());
-
-                //  Find and set the Text object
+                // StartCoroutine(controller.SwitchColorCoroutine());
+                // Find and set the Text object
                 GameObject textObject = GameObject.Find(textName);
                 if (textObject != null)
                 {

@@ -1,0 +1,8 @@
+Log Start
+2024-10-13 14:14:09: Logging started.
+2024-10-13 14:14:20: Set frequency: 7.50Hz  Actual frequency: 7.42Hz
+2024-10-13 14:14:21: Set frequency: 7.50Hz  Actual frequency: 7.42Hz
+2024-10-13 14:14:23: Set frequency: 15.00Hz  Actual frequency: 15.40Hz
+2024-10-13 14:14:25: Set frequency: 15.00Hz  Actual frequency: 14.78Hz
+2024-10-13 14:14:27: Set frequency: 15.00Hz  Actual frequency: 14.83Hz
+2024-10-13 14:14:36: Set frequency: 15.00Hz  Actual frequency: 13.37Hz

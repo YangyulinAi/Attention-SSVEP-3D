@@ -5,15 +5,15 @@
  */
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SSVEPController : MonoBehaviour
 {
-    //Parameters, setting in Main.cs
+    // Parameters, setting in Main.cs
     private float frequency = 10f; // Frequency in Hz (Hertz)
     private float switchInterval;
 
@@ -21,20 +21,42 @@ public class SSVEPController : MonoBehaviour
 
     private Image image; // Image component of the panel
 
-    private float lastCheckTime = 0f; // 上一次检查的时间
+    private double lastCheckTime = 0f; // 上一次检查的时间
     private int flashesSinceLastCheck = 0; // 上次检查后的闪烁次数
 
     private string logFilePath;
 
+    private List<string> logBuffer = new List<string>();
 
+    private Stopwatch stopwatch = new Stopwatch();
+    private double lastSwitchTime = 0f;
+
+    private Color color1 = Color.white;
+    private Color color2 = Color.black;
+    private bool isColor1 = true;
+
+
+    void Awake()
+    {
+        
+    }
+
+    void OnEnable()
+    {
+        stopwatch.Start();
+        flashesSinceLastCheck = 0;
+        //lastCheckTime = stopwatch.Elapsed.TotalSeconds;
+    }
 
     void Start()
     {
+        Time.fixedDeltaTime = 0.005f; // 设置FixedUpdate的调用间隔为5ms
+
         image = GetComponent<Image>(); // Get the Image component
-        switchInterval = 1f / (2f * frequency); // Calculate the interval for changing colors
+        switchInterval = 1.0f / (2.0f * frequency); // Calculate the interval for changing colors
 
         // 设置日志文件路径，可以根据需要更改文件名或路径
-        string folderPath = Application.dataPath + "/Experiment_Data";
+        string folderPath = Application.dataPath + "/../Experiment_Data";
 
         if (!Directory.Exists(folderPath))
         {
@@ -50,66 +72,92 @@ public class SSVEPController : MonoBehaviour
 
         // 写入启动时的日志
         Log("Logging started.");
-
     }
 
-    public IEnumerator SwitchColorCoroutine()
+    void OnDisable()
     {
-        float nextSwitchTime = Time.unscaledTime + switchInterval; // 计算下一次颜色切换的目标时间
+        stopwatch.Stop();
+    }
 
-        while (true)
+
+    void FixedUpdate()
+    {
+        double elapsedTime = stopwatch.Elapsed.TotalSeconds;
+
+        if (elapsedTime - lastSwitchTime >= switchInterval)
         {
-            image.enabled = true;
+            // 切换颜色
+            image.color = isColor1 ? color1 : color2;
+            isColor1 = !isColor1;
 
-            // Determine if it's time to switch colors
-            if (Time.unscaledTime >= nextSwitchTime)
-            {
-                // Reset the next switch time to ensure the interval is consistent
-                nextSwitchTime += switchInterval;
+            lastSwitchTime += switchInterval;
+            flashesSinceLastCheck++;
+        }
 
-                // Switch colors
-                image.color = (image.color == Color.white) ? Color.black : Color.white;
+        // 每秒检查一次频率（与 Update 中相同）
+    }
 
-                flashesSinceLastCheck++; // 记录自上次检查后的闪烁次数
-            }
+    void LateUpdate()
+    {
+        if (logBuffer.Count > 0)
+        {
+            var logsToWrite = new List<string>(logBuffer);
+            logBuffer.Clear();
 
-            // 等待下一帧 (一秒÷当前帧率）帧率越高，影响越小
-            yield return null;
+            // 异步写入日志，避免阻塞主线程
+            System.Threading.Tasks.Task.Run(() => File.AppendAllLines(logFilePath, logsToWrite));
         }
     }
 
     void Update()
     {
-        // 每秒检查一次
-        if (Time.time - lastCheckTime >= 1f)
+
+        double elapsedTime = stopwatch.Elapsed.TotalSeconds;
+
+        if (elapsedTime - lastCheckTime >= 1.0)
         {
             // 理论上每秒应该闪烁的次数
-            int theoreticalFlashes = Mathf.RoundToInt(frequency);
+            double theoreticalFlashes = frequency * 2.0; // 每秒颜色切换次数
 
-            if(theoreticalFlashes != flashesSinceLastCheck / 2 && flashesSinceLastCheck != 0)
+            // 实际闪烁次数
+            int actualFlashes = flashesSinceLastCheck;
+
+            // 计算实际频率
+            double actualFrequency = (actualFlashes / 2.0) / (elapsedTime - lastCheckTime);
+
+            // 允许的误差范围（可根据需要调整）
+            double tolerance = 0.015 * frequency; // 1.5% 的误差
+
+            if (Mathf.Abs((float)actualFrequency - frequency) > tolerance)
             {
-                // 检查是否达到设定频率
-                Debug.Log("Set frequency: " + theoreticalFlashes + "  Actual frequency: " + flashesSinceLastCheck / 2);
-                Log("Set frequency: " + theoreticalFlashes + "  Actual frequency: " + flashesSinceLastCheck / 2);
+                // 闪烁频率不在容忍范围内
+                Log($"Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz");
+#if UNITY_EDITOR
+                UnityEngine.Debug.Log($"<color=red>Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz</color>");
+#endif
             }
-            
+            else
+            {
+                // 闪烁频率在容忍范围内
+#if UNITY_EDITOR
+                UnityEngine.Debug.Log($"<color=green>Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz</color>");
+#endif
+            }
+
             // 更新检查时间和重置闪烁次数
-            lastCheckTime = Time.time;
+            lastCheckTime = elapsedTime;
             flashesSinceLastCheck = 0;
         }
     }
 
-    // 记录日志的方法
+
     public void Log(string message)
     {
-        // 使用StreamWriter写入日志
-        using (StreamWriter writer = new StreamWriter(logFilePath, true))
-        {
-            writer.WriteLine(System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ": " + message);
-        }
+        string logEntry = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ": " + message;
+        logBuffer.Add(logEntry);
     }
 
-    //Getter and Setter
+    // Getter and Setter
     public void SetFrequency(float frequency)
     {
         this.frequency = frequency; // Provides a public method to set the frequency
@@ -121,9 +169,6 @@ public class SSVEPController : MonoBehaviour
         this.textObject = textObject;
     }
 
-    public void OnEnable()
-    {
-        flashesSinceLastCheck = 0;
-    }
+   
 
 }
