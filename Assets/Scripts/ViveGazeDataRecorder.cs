@@ -81,10 +81,11 @@ public class ViveGazeDataRecorder
         Application.targetFrameRate = 120;
 
         // 文件夹名
-        string directoryPath = Path.Combine(Application.dataPath, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+        string parentDirectory = Directory.GetParent(Application.dataPath).FullName;
+        string directoryPath = Path.Combine(parentDirectory, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
         // 初始化一个新的线程来处理数据收集，然后启动这个线程
-        
+
 
         if (startRecord)
         {

@@ -1,3 +1,0 @@
-Log Start
-2024-10-09 18:29:52: Logging started.
-2024-10-09 18:29:52: Logging started.
