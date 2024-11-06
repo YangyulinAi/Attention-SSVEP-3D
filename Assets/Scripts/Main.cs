@@ -77,6 +77,12 @@ public class Main : MonoBehaviour
 
     void Start()
     {
+        // 禁用VSync
+        QualitySettings.vSyncCount = 0;
+
+        // 设置目标帧率
+        Application.targetFrameRate = 120;
+
         SetNumberController();
         SetSpriteController();
         SetMarkerController();

@@ -38,7 +38,7 @@ public class SSVEPController : MonoBehaviour
 
     void Awake()
     {
-        
+
     }
 
     void OnEnable()
@@ -126,9 +126,9 @@ public class SSVEPController : MonoBehaviour
             double actualFrequency = (actualFlashes / 2.0) / (elapsedTime - lastCheckTime);
 
             // 允许的误差范围（可根据需要调整）
-            double tolerance = 0.015 * frequency; // 1.5% 的误差
+            double tolerance = 0.01 * frequency; // 1% 的误差
 
-            if (Mathf.Abs((float)actualFrequency - frequency) > tolerance)
+            if (Mathf.Abs((float)actualFrequency - frequency) > 2 * tolerance)
             {
                 // 闪烁频率不在容忍范围内
                 Log($"Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz");
@@ -136,12 +136,17 @@ public class SSVEPController : MonoBehaviour
                 UnityEngine.Debug.Log($"<color=red>Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz</color>");
 #endif
             }
+            else if(Mathf.Abs((float)actualFrequency - frequency) >  tolerance)
+            {
+                // 闪烁频率在2倍容忍范围内
+#if UNITY_EDITOR
+                UnityEngine.Debug.Log($"<color=yellow>Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz</color>");
+#endif
+            }
             else
             {
-                // 闪烁频率在容忍范围内
-#if UNITY_EDITOR
                 UnityEngine.Debug.Log($"<color=green>Set frequency: {frequency:F2}Hz  Actual frequency: {actualFrequency:F2}Hz</color>");
-#endif
+
             }
 
             // 更新检查时间和重置闪烁次数
