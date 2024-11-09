@@ -67,13 +67,15 @@ public class Main : MonoBehaviour
     ///  Local Variables
     /// </summary>
     private bool start = false;
-    private bool breakStage = true;
+    private bool breakStage = false;
     private bool hasUserPressed = true;// Will be set false in Update()
 
     public SteamVR_Action_Boolean triggerAction = SteamVR_Actions.default_InteractUI;
     private float lastClickTime = 0f;
     public float doubleClickThreshold = 0.3f; // 双击间隔时间阈值
     private bool hasOneClick = false; // 是否已经有一次点击
+    private string userAction = "Not Click";
+    
 
     void Start()
     {
@@ -135,11 +137,38 @@ public class Main : MonoBehaviour
     }
     private bool UserInputDetected()
     {
-        // 检测输入设备上的输入事件，如按键、点击等
-        if (Input.GetMouseButtonDown(0) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
+        if (Input.GetMouseButtonDown(0) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand)) //.Any
         {
+            if (!hasOneClick)
+            {
+                // 如果当前没有一次点击的记录
+                hasOneClick = true;
+                lastClickTime = Time.time;
+            }
+            else if (Time.time - lastClickTime < doubleClickThreshold)
+            {
+                // 如果已经有一次点击，且第二次点击在规定时间内
+                Debug.Log("Double Click Detected");
+                userAction = "double";
+                hasOneClick = false; // 重置点击状态
+                return true;
+            }
+            else
+            {
+                // 如果第二次点击超出了规定时间
+                lastClickTime = Time.time; // 重置最后点击时间
+            }
+        }
+        else if (hasOneClick && (Time.time - lastClickTime > doubleClickThreshold))
+        {
+            // 如果只有一次点击，且时间已经超过了双击的阈值
+            Debug.Log("Single Click Detected");
+            userAction = "single";
+            hasOneClick = false; // 重置点击状态
             return true;
         }
+
+        userAction = "Not Clicked";
         return false;
     }
 
@@ -216,17 +245,6 @@ public class Main : MonoBehaviour
 
     private void HandleUserInput()
     {
-        string userAction = "Not Clicked";
-
-        if (recorder.CheckConnection())
-        {
-            userAction = CheckTriggerClick();
-        }
-        else
-        {
-            userAction = CheckMouseClick();
-        }
-
         if (userAction != "Not Clicked")
         {
             SendMarker("UserRes");
@@ -243,82 +261,12 @@ public class Main : MonoBehaviour
                 SendMarker("False");
             }
 
-            Debug.Log("<color=#00FF00>User Res</color>");
+            if(userAction == "single")
+                Debug.Log("<color=#00FF00>User Res: odd</color>");
+            else
+                Debug.Log("<color=#00FF00>User Res: even</color>");
             hasUserPressed = true;
         }
-    }
-
-
-
-    private string CheckTriggerClick()
-    {
-        string action = "Not Clicked";
-        if (triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand)) //.Any
-        {
-            if (!hasOneClick)
-            {
-                // 如果当前没有一次点击的记录
-                hasOneClick = true;
-                lastClickTime = Time.time;
-            }
-            else if (Time.time - lastClickTime < doubleClickThreshold)
-            {
-                // 如果已经有一次点击，且第二次点击在规定时间内
-                Debug.Log("Double Click Detected");
-                action = "double";
-                hasOneClick = false; // 重置点击状态
-            }
-            else
-            {
-                // 如果第二次点击超出了规定时间
-                lastClickTime = Time.time; // 重置最后点击时间
-            }
-        }
-        else if (hasOneClick && (Time.time - lastClickTime > doubleClickThreshold))
-        {
-            // 如果只有一次点击，且时间已经超过了双击的阈值
-            Debug.Log("Single Click Detected");
-            action = "single";
-            hasOneClick = false; // 重置点击状态
-        }
-
-        return action;
-    }
-
-    private string CheckMouseClick()
-    {
-        string action = "Not Clicked";
-
-        if (Input.GetMouseButtonDown(0)) // 检测鼠标左键按下
-        {
-            if (!hasOneClick)
-            {
-                // 如果当前没有一次点击的记录
-                hasOneClick = true;
-                lastClickTime = Time.time;
-            }
-            else if (Time.time - lastClickTime < doubleClickThreshold)
-            {
-                // 如果已经有一次点击，且第二次点击在规定时间内
-                Debug.Log("Double Click Detected");
-                action = "double";
-                hasOneClick = false; // 重置点击状态
-            }
-            else
-            {
-                // 如果第二次点击超出了规定时间
-                lastClickTime = Time.time; // 重置最后点击时间
-            }
-        }
-        else if (hasOneClick && (Time.time - lastClickTime > doubleClickThreshold))
-        {
-            // 如果只有一次点击，且时间已经超过了双击的阈值
-            Debug.Log("Single Click Detected");
-            action = "single";
-            hasOneClick = false; // 重置点击状态
-        }
-
-        return action;
     }
 
     private IEnumerator ChangeStage()

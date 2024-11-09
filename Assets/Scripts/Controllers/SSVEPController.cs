@@ -38,13 +38,13 @@ public class SSVEPController : MonoBehaviour
 
     void Awake()
     {
-
+        flashesSinceLastCheck = 0;
     }
 
     void OnEnable()
     {
         stopwatch.Start();
-        flashesSinceLastCheck = 0;
+        
         //lastCheckTime = stopwatch.Elapsed.TotalSeconds;
     }
 
