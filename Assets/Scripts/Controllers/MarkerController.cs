@@ -17,22 +17,32 @@ public class MarkerController
     private Dictionary<string, byte> markerValues = new Dictionary<string, byte>
     {
         // Arrow Direction 
-        {"Up", 88},
-        {"Down", 22},
-        {"Left", 44},
-        {"Right", 66},
-        {"Up Left", 77},
-        {"Up Right", 99},
+        {"Up", 80},
+        {"Down", 20},
+        {"Left Close", 40},
+        {"Right Close", 60},
+        {"Up Left Close", 70},
+        {"Up Right Close", 90},
+        {"Left Far", 41},
+        {"Right Far", 61},
+        {"Up Left Far", 71},
+        {"Up Right Far", 91},
 
         // Number Shown
-        {"Four", 4},
-        {"Five", 5},
-        {"Six", 6},
+        {"One", 11},
+        {"Two", 22},
+        {"Three", 33},
+        {"Four", 44},
+        {"Five", 55},
+        {"Six", 66},
+        {"Seven", 77},
+        {"Eight", 88},
+        {"Nine", 99},
 
         // User Res
-        {"4", 40},
-        {"5", 50},
-        {"6", 60},
+        {"0", 0},//Not press
+        {"1", 1},// Pressed
+
         {"UserRes", 254},
         { "UserNotRes", 255},
 
@@ -42,7 +52,15 @@ public class MarkerController
 
         // User Res Checker
         {"True", 201},
-        {"False", 202}
+        {"False", 202},
+
+        // Number Show/Hide
+        {"NumberShow", 111},
+        {"NumberHide", 112},
+
+        // Bad Epoch
+        {"Bad", 222}
+
     };
 
     public MarkerController(string IP, int port)
@@ -56,7 +74,7 @@ public class MarkerController
 
         udpSender = new UDPSender(IP, port);
 
-        if (lslSender == null)
+        if (udpSender == null)
         {
             Debug.LogError("<color=red>UDPSender component not found.</color>");
         }

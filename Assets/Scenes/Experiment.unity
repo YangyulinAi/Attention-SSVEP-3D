@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 369b9ebe3a62b904dbc19bd332b44086, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 29ae8f00254f0d04d9b91fd6e2faaa6d, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.00080953666, g: 0.004162025, b: 0.02006424, a: 1}
+  m_IndirectSpecularColor: {r: 0.00043032438, g: 0.0019343264, b: 0.011339045, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -249,7 +249,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 110, y: 0}
   m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &223824733
@@ -1266,7 +1266,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -200, y: 0}
+  m_AnchoredPosition: {x: -110, y: 0}
   m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1637733976
@@ -1331,6 +1331,7 @@ GameObject:
   - component: {fileID: 1733283884}
   - component: {fileID: 1733283883}
   - component: {fileID: 1733283886}
+  - component: {fileID: 1733283887}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -1400,22 +1401,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c57db9390bc22f47ac1e57840eb2554, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ssvepLeftFrequency: 10
-  ssvepMiddleFrequency: 15
-  ssvepRightFrequency: 20
+  ssvepLeftFrequency: 8
+  ssvepMiddleFrequency: 11
+  ssvepRightFrequency: 14
   IP: 192.168.1.11
   port: 9999
   sprites:
+  - {fileID: 21300000, guid: c33175cfc164cee428c2bb179c1cf5c6, type: 3}
   - {fileID: 21300000, guid: bfb1a40bb8e04ad4ea06ce5100f41291, type: 3}
   - {fileID: 21300000, guid: 90f33ae65fc362b438a11b10ef464599, type: 3}
-  - {fileID: 21300000, guid: b2271e079e70d6c4dbee30583586e16b, type: 3}
-  - {fileID: 21300000, guid: 6e5eee0c05fcf7b439b27ea85bcb070e, type: 3}
+  - {fileID: 21300000, guid: 90e127db07a8eb542a422512cb421d2c, type: 3}
+  - {fileID: 21300000, guid: 30990340d6554dc439a6db77a98c2e70, type: 3}
   - {fileID: 21300000, guid: 73451632092f79b4697b3a1c061327bc, type: 3}
   - {fileID: 21300000, guid: 361f83b54856ee1448cf806818183bba, type: 3}
+  - {fileID: 21300000, guid: caecd94971bcc3a4c94c3265755ce719, type: 3}
+  - {fileID: 21300000, guid: 6a8a63ecfc6fec14d8bfdb6647ff2921, type: 3}
+  - {fileID: 21300000, guid: aa90bfd711727e248ab7d768b5241376, type: 2}
+  - {fileID: 21300000, guid: ee8b916a451b05849b025e50a724c213, type: 3}
   - {fileID: 21300000, guid: 91e3f51b2db613346a2e4c0f13d4dc7d, type: 3}
   stageInterval: 8
-  selectedSprites: 0300000004000000050000000000000002000000
-  maxRunTimes: 5
+  selectedSprites: 0000000001000000030000000400000005000000060000000700000008000000090000000a000000
+  maxRunTimes: 1
   numberMin: 4
   numberMax: 6
   numberShowTime: 3
@@ -1426,6 +1432,43 @@ MonoBehaviour:
   middleImageTransform: {fileID: 1203469614}
   rightImageTransform: {fileID: 223824732}
   fillImage: {fileID: 143525351}
+  triggerAction:
+    actionPath: /actions/default/in/InteractUI
+    needsReinit: 0
+  doubleClickThreshold: 0.3
+--- !u!114 &1733283887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733283882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a5fb0ca93b55ef4b8d54b512b103341, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  poseAction:
+    actionPath: /actions/default/in/Pose
+    needsReinit: 0
+  inputSource: 0
+  origin: {fileID: 0}
+  onTransformUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  onTransformChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onConnectedChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onTrackingChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onDeviceIndexChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  broadcastDeviceChanges: 1
 --- !u!1 &1841472162
 GameObject:
   m_ObjectHideFlags: 0

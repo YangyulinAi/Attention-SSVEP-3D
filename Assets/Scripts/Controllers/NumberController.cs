@@ -34,9 +34,15 @@ public class NumberController
     {
         switch (this.randomNumber)
         {
+            case "1": return "One";
+            case "2": return "Two";
+            case "3": return "Three";
             case "4": return "Four";
             case "5": return "Five";
             case "6": return "Six";
+            case "7": return "Seven";
+            case "8": return "Eight";
+            case "9": return "Nine";
         }
         return "null";
     }
@@ -44,7 +50,14 @@ public class NumberController
 
     public bool CompareUserInput(string input)
     {
-        return input != null && input == randomNumber;
+        if(input != null)
+        {
+            if(int.Parse(randomNumber)%2 == int.Parse(input)) //假设奇数按，那么相等情况下就是奇数
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void ShowRandomNumberInDirection(string direction)
@@ -52,16 +65,23 @@ public class NumberController
         switch (direction)
         {
             case "Up":
+                centerNumberText.color = Color.red;
                 centerNumberText.text = randomNumber;
                 centerNumberText.gameObject.SetActive(true);
                 break;
-            case "Left":
-            case "Up Left":
+            case "Left Close":
+            case "Up Left Close":
+            case "Left Far":
+            case "Up Left Far":
+                leftNumberText.color = Color.red;
                 leftNumberText.text = randomNumber;
                 leftNumberText.gameObject.SetActive(true);
                 break;
-            case "Right":
-            case "Up Right":
+            case "Right Close":
+            case "Up Right Close":
+            case "Right Far":
+            case "Up Right Far":
+                rightNumberText.color = Color.red;
                 rightNumberText.text = randomNumber;
                 rightNumberText.gameObject.SetActive(true);
                 break;
@@ -73,5 +93,12 @@ public class NumberController
         centerNumberText.gameObject.SetActive(false);
         leftNumberText.gameObject.SetActive(false);
         rightNumberText.gameObject.SetActive(false);
+    }
+
+    public void SetAllTextToGreen()
+    {
+        centerNumberText.color = Color.green;
+        leftNumberText.color = Color.green;
+         rightNumberText.color = Color.green;
     }
 }

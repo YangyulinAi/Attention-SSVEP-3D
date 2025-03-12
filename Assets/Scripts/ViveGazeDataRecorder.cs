@@ -3,14 +3,13 @@ using System.IO;
 using UnityEngine.UI;
 using System.Threading;
 using UnityEngine;
-//using UnityEngine.UIElements;
 using ViveSR.anipal;
 using ViveSR.anipal.Eye;  // SRanipal SDK
 using System.Collections.Generic;
 using Tobii.XR.GazeModifier;
 using Unity.VisualScripting;
 
-public class ViveGazeDataRecorder : MonoBehaviour
+public class ViveGazeDataRecorder 
 {
     // 文件读写和线程管理 相关参数：
     private StreamWriter fileWriter;
@@ -48,8 +47,8 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private Vector3[] positions = new Vector3[]
     {
         new Vector3(-200, 100, 0),
-        new Vector3(200, 100, 0),
-        new Vector3(200, -100, 0),
+        new Vector3(150, 100, 0),
+        new Vector3(150, -100, 0),
         new Vector3(-200, -100, 0)
     };
     private int currentTarget = 0;
@@ -60,7 +59,11 @@ public class ViveGazeDataRecorder : MonoBehaviour
     private bool finishedAll = false;
     private static Vector2 averageScaleFactor = new Vector2(0, 0);
 
+    private float preX;
+    private float preY;
     private bool finished = true;
+
+    private bool hasShownHintinConsole = false;
 
     public ViveGazeDataRecorder(GameObject gazePointPrefab, Image fillImage, RectTransform canvasRectTransform, float canvasWidth, float canvasHight, RectTransform rectTransform1, RectTransform rectTransform2, RectTransform rectTransform3, bool startRecord)
     {
@@ -78,25 +81,30 @@ public class ViveGazeDataRecorder : MonoBehaviour
         Application.targetFrameRate = 120;
 
         // 文件夹名
-        string directoryPath = Path.Combine(Application.dataPath, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+        string parentDirectory = Directory.GetParent(Application.dataPath).FullName;
+        string directoryPath = Path.Combine(parentDirectory, "Experiment_Data", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
         // 初始化一个新的线程来处理数据收集，然后启动这个线程
-        dataCollectionThread = new Thread(DataCollectionTask);
+
 
         if (startRecord)
         {
+            dataCollectionThread = new Thread(DataCollectionTask);
             // 文件夹创建
             Directory.CreateDirectory(directoryPath);
             // 打开一个文件用于写入数据
             string filePath = Path.Combine(directoryPath, "GazeDatabyVive.csv");
             fileWriter = new StreamWriter(filePath, true);
-            fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Left Pupil Diameter, Right Pupil Diameter, Gaze on Left, Gaze on Middle, Gaze on Right");
+            fileWriter.WriteLine("Timestamp UNIX,Timestamp Local, X,Y, Left Pupil Diameter, Right Pupil Diameter, Left Eye Openness, Right Eye Openness, Gaze on Left, Gaze on Middle, Gaze on Right");
             // 开始录制
             dataCollectionThread.Start();
         }
 
         // 获取引用主摄像机
         mainCamera = Camera.main;
+
+        preX = 0;
+        preY = 0;
 
         // 初始化眼动追踪模块
         if (SRanipal_API.Initial(SRanipal_Eye_v2.ANIPAL_TYPE_EYE_V2, IntPtr.Zero) != ViveSR.Error.WORK)
@@ -105,9 +113,16 @@ public class ViveGazeDataRecorder : MonoBehaviour
             Debug.Log("SRanipal Eye initialization failed.");
         }
 
-        Debug.Log(averageScaleFactor);
     }
 
+    public bool CheckConnection()
+    {
+        if (SRanipal_API.Initial(SRanipal_Eye_v2.ANIPAL_TYPE_EYE_V2, IntPtr.Zero) != ViveSR.Error.WORK)
+        {
+            return false;
+        }
+        return true;
+    }
 
     public bool EyeCalibration()
     {
@@ -117,8 +132,15 @@ public class ViveGazeDataRecorder : MonoBehaviour
         // 获取眼动数据
         if (SRanipal_Eye_Framework.Status == SRanipal_Eye_Framework.FrameworkStatus.WORKING)
         {
+            if(!hasShownHintinConsole)
+            {
+                Debug.Log("data from eye");
+                hasShownHintinConsole = true;
+            }
+
             if (SRanipal_Eye_API.GetEyeData_v2(ref eyeData) == ViveSR.Error.WORK)
             {
+                
                 // VR 场景真实数据
                 Vector3 gazeDirection = eyeData.verbose_data.combined.eye_data.gaze_direction_normalized;
                 Vector3 gazeOrigin = eyeData.verbose_data.combined.eye_data.gaze_origin_mm * 0.001f;  // Convert mm to meters
@@ -130,9 +152,14 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 eyeGaze.y = gazePosition.y;
             }
         }
-
         else
         {
+            if (!hasShownHintinConsole)
+            {
+                Debug.Log("data from mouse");
+                hasShownHintinConsole= true;
+            }
+
             // 鼠标模拟数据
             if (Input.GetMouseButton(0))  // 当鼠标左键被点击
             {
@@ -195,21 +222,28 @@ public class ViveGazeDataRecorder : MonoBehaviour
             
         }
 
+        if(eyeGaze.x == preX && eyeGaze.y == preY)
+        {
+            return false;
+        }
         // 自适应算法
         if (eyeGaze.x != 0 && eyeGaze.y != 0 && !finished && !hasCalibrated) // 排除除零错误
         {
             Vector2 currentScaleFactor = new Vector2(gazePointPrefab.transform.localPosition.x / eyeGaze.x, gazePointPrefab.transform.localPosition.y / eyeGaze.y);
-            
+            preX = eyeGaze.x;
+            preY = eyeGaze.y;
+
             if (tempScaleFactorList.Count != 0)
             {
                 if (Vector2.Distance(lastScaleFactor, currentScaleFactor) < threshold)  // 0.05为缩放因子变化的阈值
                 {
-                    //Debug.Log("lastScaleFactor:" + lastScaleFactor + " currentScaleFactor:" + threshold);
+                    Debug.Log("localPosition.x: " + gazePointPrefab.transform.localPosition.x + " eyeGaze.x: " + eyeGaze.x + " localPosition.y: " + gazePointPrefab.transform.localPosition.y + " eyeGaze.y:" + eyeGaze.y);
+                    Debug.Log("lastScaleFactor:" + lastScaleFactor);
                     finished = ScaledTiming();
                     tempScaleFactorList.Add(currentScaleFactor);  // 添加稳定的缩放因子到列表中
 
                 }
-                else if (errorCount <= 5)
+                else if (errorCount <= 10)
                 {
                     errorCount++;
                 }
@@ -279,7 +313,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 float scaleFactorX = averageScaleFactor.x;
                 float scaleFactorY = averageScaleFactor.y;
 
-                gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 0);
+                gazePosition = new Vector3(gazePosition.x * scaleFactorX, gazePosition.y * scaleFactorY, 1);
 
                 gazePointPrefab.transform.localPosition = gazePosition;
                 gazePositionUpdated = true;
@@ -307,15 +341,18 @@ public class ViveGazeDataRecorder : MonoBehaviour
                 offset = new Vector2(offset.x * scaleFactorX, offset.y * scaleFactorY);
 
 
-                gazePosition = new Vector3(offset.x, offset.y, 0);
+                gazePosition = new Vector3(offset.x, offset.y, 1);
                 gazePointPrefab.transform.localPosition = gazePosition;
 
             }
             else
             {
-                gazePosition = new Vector3(0, 200, 0);
+                gazePosition = new Vector3(0, 200, 1);
                 gazePointPrefab.transform.localPosition = gazePosition;
             }
+
+            gazePositionUpdated = true;
+            DataUpdate(-1, -1, -1, -1);
         }
 
     }
@@ -330,16 +367,24 @@ public class ViveGazeDataRecorder : MonoBehaviour
         this.leftEyeOpenness = leftEyeOpenness;
         this.rightEyeOpenness = rightEyeOpenness;
 
-        gazeAtLeft = IsGazeInsideRectTransform(rectTransform1) ? 1 : 0;
-        gazeAtMiddle = IsGazeInsideRectTransform(rectTransform2) ? 1 : 0;
-        gazeAtRight = IsGazeInsideRectTransform(rectTransform3) ? 1 : 0;
+        // 记录注视位置
+        this.gazeAtLeft = IsGazeInsideRectTransform(rectTransform1) ? 1 : 0;
+        this.gazeAtMiddle = IsGazeInsideRectTransform(rectTransform2) ? 1 : 0;
+        this.gazeAtRight = IsGazeInsideRectTransform(rectTransform3) ? 1 : 0;
 
         //Debug.Log($"Left Pupil Diameter: {leftPupilDiameter}, Right Pupil Diameter: {rightPupilDiameter}");
     }
 
+    public void AddMarkerToFile(string marker)
+    {
+        string dataLine = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
+                   "'" + "Event Marker", "'" + marker, "-", "-", "-", "-", "-", "-", "-", "-", "-");
+        fileWriter.WriteLine(dataLine);
+
+    }
+
     private void DataCollectionTask()
     {
-
         while (keepCollecting)
         {
             if (gazePositionUpdated)
@@ -512,7 +557,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
     public void LockGaze(RectTransform rectTransform, string mode)
     {
         Vector3 imageLocalPosition = rectTransform.localPosition;
-        gazePointPrefab.transform.localPosition = imageLocalPosition;
+        gazePointPrefab.transform.localPosition = new Vector3(imageLocalPosition.x, imageLocalPosition.y, 1);
         MeshRenderer renderer = gazePointPrefab.GetComponent<MeshRenderer>();
         Material newMaterial = new Material(Shader.Find("Standard"));
         if (mode == "regular")
@@ -594,7 +639,7 @@ public class ViveGazeDataRecorder : MonoBehaviour
 
         if (timer >= gazeTime)
         {
-            Debug.Log("Completed!");
+            //Debug.Log("Completed!");
             fillImage.fillAmount = 1;
             return true;
         }

@@ -3,23 +3,25 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;  // For TextMeshProUGUI
 using UnityEngine.SceneManagement;
+using Valve.VR;
+using System;
 
 public class Instruction : MonoBehaviour
 {
     public Sprite[] sprites;// Array storing the 6 sprites
     public TextMeshProUGUI hintText;
 
-    private float ssvepLeftFrequency = 10f;
-    private float ssvepMiddleFrequency = 15f;
-    private float ssvepRightFrequency = 20f;
+    private float ssvepLeftFrequency = 7f;
+    private float ssvepMiddleFrequency = 9f;
+    private float ssvepRightFrequency = 11f;
 
-    public int numberMin = 4;
-    public int numberMax = 6;
+    public int numberMin = 1;
+    public int numberMax = 9;
     private float numberShowTime = 3f;
     private float numberHideTimeMax = 3f;
 
     private int stageInterval = 8;
-    private int[] selectedSprites = new int[10]{ 3,2,0,5,4, 3, 2, 0, 5, 4 };
+    private int[] selectedSprites = new int[10]{ 3, 2, 0, 5, 4, 3, 2, 0, 5, 4 };
     private int maxRunTimes = 1;
 
     private TextMeshProUGUI centerNumberText, leftNumberText, rightNumberText;
@@ -58,6 +60,13 @@ public class Instruction : MonoBehaviour
     public float fadeDuration = 0.5f;
     public float visibleDuration = 0.1f;
     private bool isHintStart = false;
+
+    public SteamVR_Action_Boolean triggerAction = SteamVR_Actions.default_InteractUI;
+
+    private bool seenIntruction = false;
+    public Canvas instruction;
+    public Sprite[] instruction_sprites;
+    private int instruction_index = 0;
 
     void Start()
     {
@@ -107,53 +116,84 @@ public class Instruction : MonoBehaviour
 
         if (!start)
         {
-            if (!calibration)
+            if(!seenIntruction)
             {
-                hintText.text = "Eye Gaze calibration\n Please gazing the moving cube";
-                if (recorder.EyeCalibration())
-                {
-                    calibration = true;
-                }
+                canvas.enabled = false;
+                instruction.enabled = true;
 
+                Image image = instruction.GetComponent<Image>();
+                if (image != null)
+                {
+                    if (instruction_index < instruction_sprites.Length)  // 确保不会出现数组越界
+                    {
+                        image.sprite = instruction_sprites[instruction_index];
+                    }
+                    else
+                    {
+                        seenIntruction = true;
+                    }
+
+                    if(Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
+                    {
+                        instruction_index++;
+                    }
+                }
+                else
+                {
+                    Debug.Log("No image has been found");
+                }
+                
             }
             else
             {
-                recorder.EyeTracking();
-                hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the blinking area";
+                canvas.enabled = true;
+                instruction.enabled = false;
 
-                if (!isHintStart)
+                if (!calibration)
                 {
-                    canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 35, 0);
-                    StartHint();
+                    hintText.text = "Eye Gaze calibration\n Please gazing the moving cube";
+                    if (recorder.EyeCalibration())
+                    {
+                        calibration = true;
+                    }
+
                 }
-                else 
+                else
                 {
-                    if (recorder.GazeTouchStd2() == "2")
+                    recorder.EyeTracking();
+                    hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the blinking area";
+
+                    if (!isHintStart)
                     {
                         canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
-                        hintText.text = "When your eyes make contact with the target\n It will be locked until you are a certain range away from the target!";
+                        StartHint();
                     }
-                    if (recorder.HasGazeOn("2"))
+                    else
                     {
-                        StopHint();
-                        hintText.text = "Great!";
-                        numberController.HideAllNumbers();
-                        StartCoroutine(ChangeStage());
-                        start = true;
-                        recorder.ResetTimer();
+                        if (recorder.GazeTouchStd2() == "2")
+                        {
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
+                            hintText.text = "Welcome to Attention Experiment\n Please move your eye gaze to the blinking area";
+                        }
+                        if (recorder.HasGazeOn("2"))
+                        {
+                            StopHint();
+                            hintText.text = "Great!";
+                            numberController.HideAllNumbers();
+                            StartCoroutine(ChangeStage());
+                            start = true;
+                            recorder.ResetTimer();
+                        }
                     }
                 }
-
-                    
             }
-            
-            
+
         }
         else
         {
             recorder.EyeTracking();
 
-            if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)) && !hasUserPressed)
+            if ((Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand)) && !hasUserPressed)
             {
                 string key = Input.inputString;
                 if (!string.IsNullOrEmpty(key))
@@ -178,10 +218,10 @@ public class Instruction : MonoBehaviour
             {
                 if (stage == 0)
                 {                  
-                    if (recorder.HasGazeOn("3"))
+                    if (recorder.HasGazeOn("2"))
                     {
                         stage++;
-                        hintText.text = "The yellow cursor means you're looking at the correct position\n The blue one means you're looking at the edge and will pause the timer!";
+                        hintText.text = "Amazing!";
                         Time.timeScale = 1;
                         recorder.ResetTimer();
                     }
@@ -189,17 +229,17 @@ public class Instruction : MonoBehaviour
                     {
                         if (!isHintStart)
                         {
-                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(195, 0, 0);
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When you see only a right arrow, please move your eye gaze to the right blinking cube.";
+                        hintText.text = "Right arrow, keep your eyes on the middle and move your attention to the right blinking cube.";
                     }
                 }
                 else if (stage == 1)
                 {                   
-                    if (recorder.HasGazeOn("1"))
+                    if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "Smart!\n When you see the X symbol appear in the centre of the screen\n Please move your eyes back to the centre of the screen and relax.";
+                        hintText.text = "X symbol, please move eyes to the centre and relax.";
                         Time.timeScale = 1;
                         stage++;
                         recorder.ResetTimer();
@@ -208,20 +248,21 @@ public class Instruction : MonoBehaviour
                     {
                         if (!isHintStart)
                         {
-                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(-195, 0, 0);
+                            canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When you see only a left arrow, please move your eye gaze to the left blinking cube.";
+                        hintText.text = "Left arrow, keep your eyes on the middle and move your attention to the left blinking cube.";
                     }
                 }
                 else if (stage == 2)
                 {                  
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "The numbers are only 4 5 6 and you need to press the right buttons as much as possible.";
-                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        hintText.text = "Down arrow, move eyes to the middle cube, and when finish, press the trigger.";
+                        if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
-                            hintText.text = "Excellent!\n Next, and most critically, you need to look at as many of the correct numbers as possible without moving your eyes, which is called \"covert visual attention.\"";
+                            numberController.SetAllTextToGreen();
+                            hintText.text = "Odd number press trigger once, even number press trigger twice.";
                             Time.timeScale = 1;
                             stage++;
                             recorder.ResetTimer();
@@ -234,17 +275,18 @@ public class Instruction : MonoBehaviour
                             canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When the down arrow appears, please move your eyes to the blinking square in the middle\n Each time, a random number will appear, you need to press the corresponding key on the keyboard";
+                        hintText.text = "Down arrow, move eyes to the middle cube, and when finish, press the trigger.";
                     }
                 }
                 else if (stage == 3)
                 {                   
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "Please do not move your eye, and covertly monitoring the number and press it!";
-                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        hintText.text = "Down right arrow, please keep eyes to the middle cube, and covertly monitoring the number on the right and press the trigger.";
+                        if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
-                            hintText.text = "Brilliant!\n In the formal experiment there will be no auxiliary cursor, the rest of the steps are the same";
+                            numberController.SetAllTextToGreen();
+                            hintText.text = "Again, Odd number press trigger once, even number press trigger twice.";
                             Time.timeScale = 1;
                             stage++;
                             recorder.ResetTimer();
@@ -257,17 +299,18 @@ public class Instruction : MonoBehaviour
                             canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When you see down arrow with a right arrow, please keep your eye gaze to the middle cube";
+                        hintText.text = "Down right arrow, please keep eyes to the middle cube, and covertly monitoring the number on the right and press the trigger.";
                     }
                 }
                 else if (stage == 4)
                 {
                     if (recorder.HasGazeOn("2"))
                     {
-                        hintText.text = "Still do not move your eye, and covertly monitoring the number and press it!";
-                        if ((Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad6)))
+                        hintText.text = "Down left arrow, please keep eyes to the middle cube, and covertly monitoring the number on the left and press the trigger";
+                        if (Input.GetKeyDown(KeyCode.Space) || triggerAction.GetStateDown(SteamVR_Input_Sources.RightHand))
                         {
-                            hintText.text = "Incredible!\n The experiment consists of the five cases shown above\n Now, please practice them before we officially start";
+                            numberController.SetAllTextToGreen();
+                            hintText.text = "Incredible, please practice one more time before we start";
                             Time.timeScale = 1;
                             stage++;
                             recorder.ResetTimer();
@@ -280,12 +323,12 @@ public class Instruction : MonoBehaviour
                             canvasGroup.GetComponentInChildren<Image>().rectTransform.localPosition = new Vector3(0, 0, 0);
                             StartHint();
                         }
-                        hintText.text = "When you see down arrow with a left arrow, please keep your eye gaze to the middle cube";
+                        hintText.text = "Down left arrow, please keep eyes to the middle cube, and covertly monitoring the number on the left and press the trigger";
                     }
                 }
                 else
                 {
-                    hintText.text = "Now, please try by youself before we start.";
+                    hintText.text = "Now, please try by youself.";
                     Time.timeScale = 1;
                 }
 
@@ -398,7 +441,7 @@ public class Instruction : MonoBehaviour
          */
 
         // Random hide time, from 1 to max seconds
-        float hideTime = Random.Range(1f, numberHideTimeMax);
+        float hideTime = UnityEngine.Random.Range(1f, numberHideTimeMax);
         yield return new WaitForSeconds(hideTime);
 
         // Randomly select a number
@@ -419,15 +462,15 @@ public class Instruction : MonoBehaviour
 
     private void SetSSVEPController(string blockName, float frequency, string textName, int index)
     {
-        blocks[index] = GameObject.Find(blockName);
+        blocks[index] = GameObject.Find(blockName); // GameObject[]
         if (blocks[index] != null)
         {
             SSVEPController controller = blocks[index].GetComponent<SSVEPController>();
             if (controller != null)
             {
                 controller.SetFrequency(frequency);
-
-                //  Find and set the Text object
+                // StartCoroutine(controller.SwitchColorCoroutine());
+                // Find and set the Text object
                 GameObject textObject = GameObject.Find(textName);
                 if (textObject != null)
                 {
