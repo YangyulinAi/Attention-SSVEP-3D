@@ -1,4 +1,4 @@
-# Allen Experiment 2: Multi-Target Visual Attention Allocation (Number Judgment Version)
+# Experiment 2: Multi-Target Visual Attention Allocation
 
 This project investigates how participants allocate visual attention in various multi-target flicker (SSVEP) scenarios while performing odd/even judgments on digits. Different conditions involve varying target distances (near/far), target combinations (center only, left-right, three targets), and the presence or absence of central flicker. Below is an introduction to the file structure, key scripts, and workflow.
 
