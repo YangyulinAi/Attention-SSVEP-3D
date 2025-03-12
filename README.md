@@ -15,8 +15,8 @@ This project investigates how participants allocate visual attention in various 
 
 ## 2. Requirements
 
-1. **Unity 2020.x or higher** (supporting C# 7.3+ syntax)
-2. **SteamVR** (if running in VR)
+1. **Unity 2022.x or higher** (supporting C# 7.3+ syntax)
+2. **VIVE Eye Pro** (if running in VR)
 3. **Vive SRanipal SDK** (if using HTC Vive Pro Eye / Focus 3 for eye tracking)
 4. **LSL4Unity** (optional, if sending LSL markers for EEG)
 5. **.NET 4.x** and compatible VR/AR SDKs
