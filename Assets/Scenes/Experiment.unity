@@ -249,7 +249,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 110, y: 0}
   m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &223824733
@@ -1266,7 +1266,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -200, y: 0}
+  m_AnchoredPosition: {x: -110, y: 0}
   m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1637733976
@@ -1401,22 +1401,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c57db9390bc22f47ac1e57840eb2554, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ssvepLeftFrequency: 12
-  ssvepMiddleFrequency: 12
-  ssvepRightFrequency: 12
+  ssvepLeftFrequency: 8
+  ssvepMiddleFrequency: 11
+  ssvepRightFrequency: 14
   IP: 192.168.1.11
   port: 9999
   sprites:
+  - {fileID: 21300000, guid: c33175cfc164cee428c2bb179c1cf5c6, type: 3}
   - {fileID: 21300000, guid: bfb1a40bb8e04ad4ea06ce5100f41291, type: 3}
   - {fileID: 21300000, guid: 90f33ae65fc362b438a11b10ef464599, type: 3}
   - {fileID: 21300000, guid: 90e127db07a8eb542a422512cb421d2c, type: 3}
   - {fileID: 21300000, guid: 30990340d6554dc439a6db77a98c2e70, type: 3}
   - {fileID: 21300000, guid: 73451632092f79b4697b3a1c061327bc, type: 3}
   - {fileID: 21300000, guid: 361f83b54856ee1448cf806818183bba, type: 3}
+  - {fileID: 21300000, guid: caecd94971bcc3a4c94c3265755ce719, type: 3}
+  - {fileID: 21300000, guid: 6a8a63ecfc6fec14d8bfdb6647ff2921, type: 3}
+  - {fileID: 21300000, guid: aa90bfd711727e248ab7d768b5241376, type: 2}
+  - {fileID: 21300000, guid: ee8b916a451b05849b025e50a724c213, type: 3}
   - {fileID: 21300000, guid: 91e3f51b2db613346a2e4c0f13d4dc7d, type: 3}
   stageInterval: 8
-  selectedSprites: 0000000002000000030000000400000005000000
-  maxRunTimes: 5
+  selectedSprites: 0000000001000000030000000400000005000000060000000700000008000000090000000a000000
+  maxRunTimes: 1
   numberMin: 4
   numberMax: 6
   numberShowTime: 3

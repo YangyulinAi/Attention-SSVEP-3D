@@ -69,14 +69,18 @@ public class NumberController
                 centerNumberText.text = randomNumber;
                 centerNumberText.gameObject.SetActive(true);
                 break;
-            case "Left":
-            case "Up Left":
+            case "Left Close":
+            case "Up Left Close":
+            case "Left Far":
+            case "Up Left Far":
                 leftNumberText.color = Color.red;
                 leftNumberText.text = randomNumber;
                 leftNumberText.gameObject.SetActive(true);
                 break;
-            case "Right":
-            case "Up Right":
+            case "Right Close":
+            case "Up Right Close":
+            case "Right Far":
+            case "Up Right Far":
                 rightNumberText.color = Color.red;
                 rightNumberText.text = randomNumber;
                 rightNumberText.gameObject.SetActive(true);

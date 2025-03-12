@@ -29,7 +29,7 @@ public class Main : MonoBehaviour
     private SpriteController spriteController;
     public Sprite[] sprites;// Array storing the 6 sprites
     public int stageInterval = 8;
-    public int[] selectedSprites = new int[5]{ 3,4,5,0,2};
+    public int[] selectedSprites = new int[10]{0,1,3,4,5,6,7,8,9,10};
     public int maxRunTimes = 5;
     private int selectedIndex = 0;
     private int currentRunTimes = 0;
@@ -335,6 +335,7 @@ public class Main : MonoBehaviour
         // Randomly select a number
         numberController.SetRandomNumber(numberMin, numberMax + 1);
 
+        SendMarker("NumberShow");
         SendMarker(numberController.GetRandomNumber());
 
         // Display the number based on the direction
@@ -343,6 +344,7 @@ public class Main : MonoBehaviour
         // Number Showing Time
         yield return new WaitForSeconds(numberShowTime);
 
+        SendMarker("NumberHide");
         // Hide all numbers
         numberController.HideAllNumbers();
     }
