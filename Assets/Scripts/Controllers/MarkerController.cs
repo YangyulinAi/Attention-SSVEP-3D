@@ -17,6 +17,7 @@ public class MarkerController
     private Dictionary<string, byte> markerValues = new Dictionary<string, byte>
     {
         // Arrow Direction 
+        {"Rest",50 },
         {"Up", 80},
         {"Down", 20},
         {"Left Close", 40},

@@ -27,6 +27,12 @@ public class ArrowController
         // 根据传入的箭头方向进行逻辑处理
         switch (currentArrow)
         {
+            case "Rest":
+                // 默认情况下关闭所有闪烁 - Condition A (静息)
+                SetBlinking("SSVEP Middle", false);
+                SetBlinking("SSVEP Left", false);
+                SetBlinking("SSVEP Right", false);
+                break;
             case "Up":
             case "Down": // Condition B - 基线
                 SetBlinking("SSVEP Middle", true);
@@ -56,7 +62,6 @@ public class ArrowController
                 SetBlinking("SSVEP Right", true);
                 SetDistance("SSVEP Left", false);
                 SetDistance("SSVEP Right", false);
-
                 break;
             case "Up Left Far":
             case "Up Right Far":// Condition F - 长距离，有Active SSVEP

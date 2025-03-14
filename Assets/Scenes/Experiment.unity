@@ -1421,7 +1421,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 91e3f51b2db613346a2e4c0f13d4dc7d, type: 3}
   stageInterval: 8
   selectedSprites: 0000000001000000030000000400000005000000060000000700000008000000090000000a000000
-  maxRunTimes: 1
+  maxRunTimes: 5
   numberMin: 4
   numberMax: 6
   numberShowTime: 3
