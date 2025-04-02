@@ -72,7 +72,7 @@ public class Main : MonoBehaviour
 
     public SteamVR_Action_Boolean triggerAction = SteamVR_Actions.default_InteractUI;
     private float lastClickTime = 0f;
-    public float doubleClickThreshold = 0.3f; // 双击间隔时间阈值
+    public float doubleClickThreshold = 1.0f; // 双击间隔时间阈值
     private bool hasOneClick = false; // 是否已经有一次点击
     private string userAction = "Not Click";
     
